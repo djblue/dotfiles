@@ -34,7 +34,7 @@ for file in $files; do
     else # dotfile already exits as link
 
         echo "Updating Symlink: $file"
-        ln -sf $dir/$file ~/.$file
+        ln -nsf $dir/$file ~/.$file
 
     fi
 
