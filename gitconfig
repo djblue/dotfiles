@@ -1,0 +1,9 @@
+[user]
+	email = a.s.badahdah@gmail.com
+	name = Chris Badahdah
+[push]
+	default = simple
+[core]
+	editor = vim
+[color]
+	ui = true
