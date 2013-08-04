@@ -3,10 +3,11 @@
 
 # script variables
 
-script="$(realpath $0)"
-dir="$(dirname $script)"    # dotfiles directory
-olddir="$dir-old"           # old dotfiles backup directory
-files="$(ls $dir)"          # list of files/folders
+
+cd $(dirname $0)
+dir="$(pwd)"        # dotfiles directory
+olddir="$dir-old"   # old dotfiles backup directory
+files="$(ls $dir)"  # list of files/folders
 
 # excludes
 exclude="$0 .git README.md plugin.sh"
@@ -40,8 +41,5 @@ for file in $files; do
 done
 
 # initialize vim plugins
-cd $dir
 git submodule init
 git submodule update
-# upgrade vim plugins
-git submodule foreach git pull origin master

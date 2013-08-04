@@ -32,10 +32,10 @@ don't forget to commit changes afterwards.
 
 ### Removing
 
-To remove plug-ins, simply delete the folder in the vim/bundle directory
-and remove the entry in the vim.sh script.
+To remove plug-ins, simply delete the folder in the vim/bundle directory.
 
 ### Upgrading
 
-All plug-ins are upgraded as when you run the install.sh script. So to
-update again, simply run the script again.
+To upgrade vim plug-ins simply run the git command:
+
+    git submodule foreach git pull origin master
