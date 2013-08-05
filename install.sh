@@ -7,7 +7,9 @@ script="$(realpath $0)"
 dir="$(dirname $script)"    # dotfiles directory
 olddir="$dir-old"           # old dotfiles backup directory
 files="$(ls $dir)"          # list of files/folders
-exclude="$0 .git vim.sh"    # exclude .git and install script
+
+# excludes
+exclude="$0 .git README.md plugin.sh"
 
 for file in $files; do
 
@@ -20,10 +22,12 @@ for file in $files; do
 
         mkdir -p $olddir
 
-        echo "Moving .$file ~ to $olddir"
-        mv ~/.$file $olddir/
+        if [[ -f ~/.$file || -d ~/.$file ]]; then
+            echo "Moving .$file"
+            mv ~/.$file $olddir/
+        fi
 
-        echo "Creating Symlink: $file"
+        echo "Symlink: $file"
         ln -s $dir/$file ~/.$file
      
     else # dotfile already exits as link
@@ -35,5 +39,9 @@ for file in $files; do
 
 done
 
-# update all vim plugins
+# initialize vim plugins
+cd $dir
+git submodule init
+git submodule update
+# upgrade vim plugins
 git submodule foreach git pull origin master
