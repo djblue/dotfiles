@@ -19,14 +19,16 @@ files in this repository.
 
 ## vim plug-ins
 
-The current plug-ins are listed in vim.sh. All plugins are treated as git
+The current plug-ins are listed in plugin.sh. All plug-ins are treated as git
 submodules, which makes it very easy to upgrade.
 
 ### Adding
 
 To add plug-ins add an entry into the vim.sh script and run the script:
 
-    ./vim.sh
+    ./plugin.sh
+
+don't forget to commit changes afterwards.
 
 ### Removing
 
