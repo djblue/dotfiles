@@ -1,0 +1,35 @@
+# aliases
+
+# listing 
+alias ls='ls --color=auto'
+alias ll='ls -AlF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# vim
+alias vi='vim'
+
+# grep
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+# sudo
+alias s='sudo -E'
+
+# safe rm
+alias rm="mv -t ~/.local/share/Trash/files --backup=t"
+
+# pacman 
+alias pacupg='sudo pacman -Syu' # upgrade
+alias pacin='sudo pacman -S'    # install from repo
+alias pacins='sudo pacman -U'   # install from file
+alias pacrem='sudo pacman -Rns' # remove package 
+alias pacre='sudo pacman -R'    # remove keep config
+
+# git
+alias gs='git status -s -b'
+alias gd='git diff'
+alias gc='git checkout'
+alias go='git commit'
+alias gl='git log --oneline --decorate --graph'
