@@ -26,6 +26,7 @@ alias pacin='sudo pacman -S'    # install from repo
 alias pacins='sudo pacman -U'   # install from file
 alias pacrem='sudo pacman -Rns' # remove package 
 alias pacre='sudo pacman -R'    # remove keep config
+alias paccl='sudo pacman -Sc'   # clean package cache
 
 # git
 alias gs='git status -s -b'
