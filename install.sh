@@ -10,13 +10,12 @@ olddir="$dir-old"   # old dotfiles backup directory
 files="$(ls $dir)"  # list of files/folders
 
 # excludes
-exclude="$0 .git README.md plugin.sh"
+exclude="$0 README.md plugin.sh"
 
 for file in $files; do
 
     # skip files in the exclude list
-    echo $exclude | grep $file > /dev/null
-    if [ $? -eq 0 ]; then continue; fi
+    echo $exclude | grep $file > /dev/null && continue
 
     # backup old files; not old symlinks
     if [ ! -L ~/.$file ]; then
