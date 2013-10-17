@@ -41,7 +41,14 @@ if [ -f ~/.aliases ]; then
     source ~/.aliases
 fi
 
+if which ruby >/dev/null && which gem >/dev/null; then
+    PATH="$(ruby -rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+fi
+
 # history settings
 HISTFILE=~/.histfile
 HISTSIZE=5000
 SAVEHIST=10000
+
+source ~/.profile
+source ~/dotfiles/.z/z.sh
