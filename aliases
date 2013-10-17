@@ -1,5 +1,8 @@
 # aliases
 
+# open file as if in file browser
+alias o='xdg-open'
+
 # listing 
 alias ls='ls --color=auto'
 alias ll='ls -AlF'
