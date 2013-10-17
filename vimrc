@@ -18,7 +18,7 @@ set smarttab
 set autoindent
 set tabstop=4
 set shiftwidth=4
-set expandtab	
+set expandtab
 
  
 " Set incremental search
@@ -53,35 +53,40 @@ set backupcopy=yes
 " Set the default color theme
 set t_Co=256
 
-"let g:Powerline_theme='short'
-let g:Powerline_colorscheme='solarized16_dark'
-
 " Colors
-"call togglebg#map("<F5>")
+call togglebg#map("<F5>")
 syntax enable
 "let g:solarized_termtrans=0.85
 "let g:solarized_termcolors=256
 set background=dark
-colorscheme solarized 
+colorscheme solarized
+
+let g:Powerline_colorscheme='solarized16_dark'
+
+"Disable ex-mode
+map Q <Nop>
+
+" It hurts to hit \ all of the time :-(
+let mapleader=','
 
 " Quick save command
 noremap  <leader>s :update<CR>
-vnoremap <leader>s :update<CR>
-inoremap <leader>s :update<CR>
+"vnoremap <leader>s :update<CR>
+"inoremap <leader>s :update<CR>
 
-
-" Creating new tabs 
+" Creating new tabs
 map <leader>n <Esc>:tabnew<CR>
 map gn <Esc>:tabnew<CR>
 map gl <Esc>:tabnext<CR>
-map gh <Esc>:tabprevious<CR>
+map gh <Esc>:tabprev<CR>
 
 " Quit
 noremap <leader>q :quit<CR>
 noremap <leader>Q :quitall<CR>
 
-" Clear highlight searching
+" Highlight searching
 noremap <leader>c :set nohlsearch<CR>
+noremap <leader>C :set hlsearch<CR>
 
 " Exit insert mode
 inoremap kj <Esc>
@@ -89,9 +94,12 @@ inoremap kj <Esc>
 " Sort function
 vnoremap <leader>r :sort<CR>
 
+" Open javascript syntax snippets
+noremap <leader>f :tabnew ~/.vim/bundle/snipmate.vim/snippets/javascript.snippets<CR>
+
 " Block indenting
-vnoremap > >gv 
-vnoremap < <gv 
+vnoremap > >gv
+vnoremap < <gv
 
 " Disable arrow keys to be mean
 inoremap <Left>     <NOP>
@@ -99,29 +107,35 @@ inoremap <Right>    <NOP>
 inoremap <Up>       <NOP>
 inoremap <Down>     <NOP>
 
-" It hurts to hit \ all of the time :-(
-let mapleader=','
-
 " Quickly wrap a long line
-nnoremap <leader>w mkVgq`k 
+nnoremap <leader>w mkVgq`k
 " Wrap an entire file
 noremap <leader>W gg200\w}j
 " Quickly unwrap a paragraph
 noremap <leader>u mk{jV}kJ`k
 
+" Remove annoying whitespace for line
+noremap <leader>e :s/\\s*$//<CR>
+" Remove annoying whitespace for file
+noremap <leader>E :%s/\s*$//<CR>
+
 " Moving around splits
 map <c-j> <c-w>j
 map <c-k> <c-w>k
 map <c-l> <c-w>l
-map <c-h> <c-w>l
+map <c-h> <c-w>h
 
 " Magnify the current split
 noremap <leader>m <C-w>_
 " Restore split windows
 noremap <leader>r <C-w>=
 
+" Open NERDTree file navigator
+noremap <leader>t :NERDTree<CR>
+
 " Open the .vimrc file
-" command V :e ~/.vimrc
+command! V :e ~/.vimrc
+noremap <leader>v :tabnew ~/.vimrc <CR>
 
 " save and upload file
-command U :w | :! ./server push
+"command U :w | :! ./server push
