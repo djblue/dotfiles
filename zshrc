@@ -9,15 +9,15 @@ autoload -U promptinit
 promptinit
 autoload -U colors && colors
 
-# colors
-ret='%{%F{red}%}'
-user='%{%F{blue}%}'
-host='%{%F{yellow}%}'
-dir='%{%F{green}%}'
-repo='%{%F{magenta}%}'
+# colors (supports older versions of zsh)
+ret="%{$fg[red]%}"
+user="%{$fg[blue]%}"
+host="%{$fg[yellow]%}"
+dir="%{$fg[green]%}"
+repo="%{$fg[magenta]%}"
 
 # reset color
-rs='%{%f%}'
+rs="%{$reset_color%}"
 
 function current_branch {
     [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] && echo -n "*"
