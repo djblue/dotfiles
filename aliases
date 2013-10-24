@@ -37,3 +37,6 @@ alias gd='git diff'
 alias gc='git checkout'
 alias go='git commit'
 alias gl='git log --oneline --decorate --graph'
+
+# tmux
+alias tmux="TERM=screen-256color-bce tmux"
