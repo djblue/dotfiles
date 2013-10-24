@@ -130,6 +130,11 @@ noremap <leader>m <C-w>_
 " Restore split windows
 noremap <leader>r <C-w>=
 
+" I can finally paste again.
+nnoremap <F2> :set invpaste paste?<CR>
+set pastetoggle=<F2>
+set showmode
+
 " Open NERDTree file navigator
 noremap <leader>t :NERDTree<CR>
 
