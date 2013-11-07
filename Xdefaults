@@ -1,0 +1,69 @@
+!----------------------------------------------
+! Xcursor settings
+!----------------------------------------------
+
+Xcursor.theme:      Vanilla-DMZ-AA
+
+!----------------------------------------------
+! Xft settings
+!----------------------------------------------
+
+Xft.dpi:            96
+Xft.antialias:      true
+Xft.rgba:           rgb
+Xft.hinting:        true
+Xft.hintstyle:      hintslight
+
+!----------------------------------------------
+! urxvt settings
+!----------------------------------------------
+
+! Fonts
+urxvt*font:         xft:Monospace:pixelsize=16
+urxvt*boldFont:     xft:Monospace:pixelsize=16
+
+! Fix font space
+urxvt*letterSpace:  -1
+ 
+! Scrollbar
+urxvt*scrollStyle:  rxvt
+urxvt*scrollBar:    false
+
+! Transparency
+urxvt*transparent:  false 
+!urxvt*shading:      15
+
+urxvt*cursorBlink:  true
+urxvt*allow_bold:   true
+
+!----------------------------------------------
+! urxvt color settings
+!----------------------------------------------
+
+urxvt*background:   #151515
+urxvt*foreground:   #FFFFFF
+
+!black
+urxvt*color0:       #2b312e
+urxvt*color8:       #3b4b42
+!red
+urxvt*color1:       #b4261c
+urxvt*color9:       #8f2910
+!green
+urxvt*color2:       #6f5f00
+urxvt*color10:      #2a4c29
+!yellow
+urxvt*color3:       #FD971F
+urxvt*color11:      #986826
+!blue
+urxvt*color4:       #435e87
+urxvt*color12:      #587aa4
+!magenta
+urxvt*color5:       #ba666a
+urxvt*color13:      #884346
+!cyan
+urxvt*color6:       #00a1ae
+urxvt*color14:      #7cb997
+!white
+urxvt*color7:       #b6c3bc
+urxvt*color15:      #9ab3a5
