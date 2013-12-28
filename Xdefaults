@@ -40,30 +40,32 @@ urxvt*allow_bold:   true
 ! urxvt color settings
 !----------------------------------------------
 
-urxvt*background:   #151515
-urxvt*foreground:   #FFFFFF
+urxvt*background:        #0F0E0F
+urxvt*foreground:        #A59461
 
+! Parker Brothers colors
 !black
-urxvt*color0:       #2b312e
-urxvt*color8:       #3b4b42
+urxvt*color0:    #322a2c
+urxvt*color8:    #46423b
 !red
-urxvt*color1:       #b4261c
-urxvt*color9:       #8f2910
+urxvt*color1:    #79220E
+urxvt*color9:    #AA261F
 !green
-urxvt*color2:       #6f5f00
-urxvt*color10:      #2a4c29
+urxvt*color2:    #344B1B
+urxvt*color10:   #76550F
 !yellow
-urxvt*color3:       #FD971F
-urxvt*color11:      #986826
+!*color3:    #c77920
+urxvt*color3:    #B45B00
+urxvt*color11:   #B57F02
 !blue
-urxvt*color4:       #435e87
-urxvt*color12:      #587aa4
+urxvt*color4:    #434045
+urxvt*color12:   #908862
 !magenta
-urxvt*color5:       #ba666a
-urxvt*color13:      #884346
+urxvt*color5:    #5C1E25
+urxvt*color13:   #624A35
 !cyan
-urxvt*color6:       #00a1ae
-urxvt*color14:      #7cb997
+urxvt*color6:    #394745
+urxvt*color14:   #393E38
 !white
-urxvt*color7:       #b6c3bc
-urxvt*color15:      #9ab3a5
+urxvt*color7:    #AE8842
+urxvt*color15:   #A59058

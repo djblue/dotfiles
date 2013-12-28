@@ -8,7 +8,7 @@ set laststatus=2
 set number
 
 " Highlight current line
-set cursorline 
+"set cursorline 
 
 " Set the text width option to '74'
 set tw=74 wrap linebreak
@@ -51,17 +51,17 @@ set nowritebackup
 set backupcopy=yes
 
 " Set the default color theme
-set t_Co=256
+"set t_Co=256
 
 " Colors
-call togglebg#map("<F5>")
+"call togglebg#map("<F5>")
 syntax enable
 "let g:solarized_termtrans=0.85
 "let g:solarized_termcolors=256
-set background=dark
-colorscheme solarized
+"set background=dark
+"colorscheme solarized
 
-let g:Powerline_colorscheme='solarized16_dark'
+"let g:Powerline_colorscheme='solarized16_dark'
 
 "Disable ex-mode
 map Q <Nop>
@@ -134,6 +134,10 @@ noremap <leader>r <C-w>=
 nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 set showmode
+
+" Toggle spelling 
+imap <Leader>s <C-o>:setlocal spell! spelllang=en_gb<CR>
+nmap <Leader>s :setlocal spell! spelllang=en_gb<CR>
 
 " Open NERDTree file navigator
 noremap <leader>t :NERDTree<CR>
