@@ -11,6 +11,9 @@ alias l='ls -CF'
 
 # vim
 alias vi='vim'
+alias svi='sudo -E vim'
+
+alias p='feh -F -Z'
 
 # grep
 alias grep='grep --color=auto'
@@ -21,7 +24,7 @@ alias egrep='egrep --color=auto'
 alias s='sudo -E'
 
 # safe rm
-alias rm="mv -t ~/.local/share/Trash/files --backup=t"
+alias rm='mv -t ~/.local/share/Trash/files --backup=t'
 
 # pacman 
 alias pacupg='sudo pacman -Syu' # upgrade
@@ -39,4 +42,8 @@ alias go='git commit'
 alias gl='git log --oneline --decorate --graph'
 
 # tmux
-alias tmux="TERM=screen-256color-bce tmux"
+alias tmux='TERM=screen-256color-bce tmux'
+alias rand='mpd && mpc ls | mpc add && mpc play'
+
+# better cp
+alias cp='rsync -a --progress'
