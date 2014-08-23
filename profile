@@ -20,3 +20,8 @@ fi
 if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
+
+if [ -d "$HOME/gocode" ] ; then
+    export GOPATH="$HOME/gocode"
+    PATH="$HOME/gocode/bin:$PATH"
+fi
