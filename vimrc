@@ -90,6 +90,9 @@ noremap <leader>C :set hlsearch<CR>
 
 " Exit insert mode
 inoremap kj <Esc>
+inoremap kJ <Esc>
+inoremap Kj <Esc>
+inoremap KJ <Esc>
 
 " Sort function
 vnoremap <leader>r :sort<CR>
