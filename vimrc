@@ -14,7 +14,7 @@ set laststatus=2
 set number
 
 " Highlight current line
-"set cursorline 
+set cursorline 
 
 " Set the text width option to '74'
 set tw=80 wrap linebreak
@@ -22,8 +22,8 @@ set tw=80 wrap linebreak
 " Set the tab options
 set smarttab
 set autoindent
-set tabstop=4
-set shiftwidth=4
+set tabstop=2
+set shiftwidth=2
 set expandtab
 
  
@@ -54,17 +54,17 @@ set nowritebackup
 set backupcopy=yes
 
 " Set the default color theme
-"set t_Co=256
+set t_Co=256
 
 " Colors
 "call togglebg#map("<F5>")
 syntax enable
 "let g:solarized_termtrans=0.85
 "let g:solarized_termcolors=256
-"set background=dark
-"colorscheme solarized
+set background=dark
+colorscheme solarized
 
-"let g:Powerline_colorscheme='solarized16_dark'
+let g:Powerline_colorscheme='solarized16_dark'
 
 "Disable ex-mode
 map Q <Nop>
@@ -148,6 +148,3 @@ noremap <leader>t :NERDTree<CR>
 " Open the .vimrc file
 command! V :e ~/.vimrc
 noremap <leader>v :tabnew ~/.vimrc <CR>
-
-" save and upload file
-"command U :w | :! ./server push
