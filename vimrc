@@ -17,7 +17,7 @@ set number
 "set cursorline 
 
 " Set the text width option to '74'
-set tw=74 wrap linebreak
+set tw=80 wrap linebreak
 
 " Set the tab options
 set smarttab
