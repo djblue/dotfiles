@@ -1,0 +1,60 @@
+# general html stuff
+snippet html "basic html page structure" b
+<!doctype html>
+<html>
+<head>
+  <title>${1:title}</title>
+  $0
+</head>
+<body>
+</body>
+</html>
+endsnippet
+
+snippet <! "html comment" 2
+<!-- $0 -->
+endsnippet
+
+snippet . "generic class" w
+<${1:div} class="$2">$0</$1>
+endsnippet
+
+snippet # "generic id" w
+<${1:div} id="$2">$0</$1>
+endsnippet
+
+snippet @ "anchor" w
+<a href="${1:/}">$0</a>
+endsnippet
+
+snippet t "generic html tag" w
+<${1:div}>$0</$1>
+endsnippet
+
+snippet div "div tag" w
+<div>$0</div>
+endsnippet
+
+snippet link "css link tag"
+<link rel="stylesheet" ref=="${1:styles.css}"/>
+endsnippet
+
+snippet script "script tag" b
+<script src="${1:app.js}"></script>
+endsnippet
+
+snippet in "input tag" w
+<input type="${1:text}" value="$2" placeholder="$3" />
+endsnippet
+
+# custom html stuff
+
+snippet grid "my handy grid class"
+<div class="grid">
+  <div class="col-${1:1-1}">$0</div>
+</div>
+endsnippet
+
+snippet col "my handy col class"
+<div class="col-$1">$2</div>
+endsnippet

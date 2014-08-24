@@ -5,6 +5,10 @@ autocmd! bufwritepost .vimrc source %
 call pathogen#infect()
 
 " snippets
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<tab>"
+let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
+
 let g:UltiSnipsEditSplit="vertical"
 
 " always show that status line

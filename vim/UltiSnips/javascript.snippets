@@ -1,0 +1,74 @@
+# normal use snippets
+snippet strict "ecmascript 5 mode"
+"use scrict"
+endsnippet
+
+snippet if "basic if statement" b
+if (${1:/*condition*/}) {
+  $0
+}
+endsnippet
+
+snippet ife "basic if else statement" b
+if (${1:/*condition*/}) {
+  $2
+} else {
+  $0
+}
+endsnippet
+
+snippet fn "lambda function" w
+function ($1) {
+  $2
+}
+endsnippet
+
+snippet fun "assigned lambda function" b
+var $1 = function ($2) {
+  $0
+}
+endsnippet
+
+snippet /* "block style comment"
+/* $1 */
+endsnippet
+
+snippet log "quick loggig"
+console.log('$1')
+endsnippet
+
+snippet bug "quick debugging"
+debugger
+endsnippet
+
+# jquery specific javascript
+
+snippet $ "jquery selector" w
+$('${1:}').$0
+endsnippet
+
+# node specific javascript
+
+snippet req "node require statement"
+$1 = require('$1')
+endsnippet
+
+snippet app "express route callback" b
+app.${1:get}('$2', function (req, res) {
+  $0
+})
+endsnippet
+
+# snippets for bdd testing
+
+snippet des "bdd style describe" b
+describe('$1', function () {
+  $2
+})
+endsnippet
+
+snippet it "bdd style it" b
+it('should $1', function (${2:done}) {
+  $3
+})
+endsnippet
