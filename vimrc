@@ -1,6 +1,12 @@
 " Automatric reloading of .vimrc
 autocmd! bufwritepost .vimrc source %
 
+" load all plugins
+call pathogen#infect()
+
+" snippets
+let g:UltiSnipsEditSplit="vertical"
+
 " always show that status line
 set laststatus=2
 
@@ -30,9 +36,6 @@ set hlsearch
 
 " wildmode
 set wildmode=longest,list
-
-" Plugins
-call pathogen#infect()
 
 " Folding settings
 set foldmethod=marker
@@ -96,9 +99,6 @@ inoremap KJ <Esc>
 
 " Sort function
 vnoremap <leader>r :sort<CR>
-
-" Open javascript syntax snippets
-noremap <leader>f :tabnew ~/.vim/bundle/snipmate.vim/snippets/javascript.snippets<CR>
 
 " Block indenting
 vnoremap > >gv
