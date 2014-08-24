@@ -12,6 +12,7 @@ alias l='ls -CF'
 # vim
 alias vi='vim'
 alias svi='sudo -E vim'
+alias vimrc='vim ~/.vimrc'
 
 alias p='feh -F -Z'
 
