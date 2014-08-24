@@ -135,7 +135,7 @@ noremap <leader>r <C-w>=
 
 " I can finally paste again.
 nnoremap <F2> :set invpaste paste?<CR>
-set pastetoggle=<F2>
+set pastetoggle=<c-p>
 set showmode
 
 " Toggle spelling 
