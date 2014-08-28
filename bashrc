@@ -24,10 +24,6 @@ HISTFILESIZE=2000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# If set, the pattern "**" used in a pathname expansion context will
-# match all files and zero or more directories and subdirectories.
-#shopt -s globstar
-
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
@@ -100,6 +96,48 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# Custom prompts
-# \[\e["code"m\] - Start custom color
-# codes: 0;32 - green, 0;31 - red, 0;34 - blue 
+# Custom prompt
+export PROMPT_COMMAND=prompt
+
+reset='\[\033[0m\]'
+
+yellow='\[\e[0;33m\]'
+blue='\[\e[0;34m\]'
+red='\[\e[0;31m\]'
+green='\[\e[0;32m\]'
+purple='\[\e[0;35m\]'
+
+function status_code () {
+  if [ "$1" == "0" ]; then
+    echo ''
+  else
+    echo "$1 "
+  fi
+}
+
+
+function current_branch {
+  # is the current branch dirty
+  [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] && echo -n "*"
+
+  # current git branch
+  echo $(git rev-parse --abbrev-ref HEAD 2> /dev/null)
+}
+
+
+function prompt () {
+
+  local exit="$?"
+  ret="$red\$(status_code $exit)$reset"
+
+  user="$blue\u$reset"
+  host="$yellow\h$reset"
+  dir="$green\w$reset"
+
+  branch="$(current_branch)"
+  if [ "$branch" != "" ]; then
+    branch="on $purple$branch$reset"
+  fi
+
+  PS1="${ret}${user} at ${host} in ${dir} ${branch}\n% "
+}
