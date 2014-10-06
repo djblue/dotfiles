@@ -1,7 +1,20 @@
 # aliases
 
+# handy function to check if a command
+# exits
+exists () {
+  type $1 > /dev/null 2>&1
+  if [ "$?" -eq "0" ]; then
+    echo "0" # found
+  else
+    echo "1" # not found
+  fi
+}
+
 # open file as if in file browser
-alias o='xdg-open'
+if [ $(exists xdg-open) ]; then
+  alias o='xdg-open'
+fi
 
 # listing 
 alias ls='ls --color=auto'
@@ -14,20 +27,23 @@ alias vi='vim'
 alias svi='sudo -E vim'
 alias vimrc='vim ~/.vimrc'
 
-alias p='feh -F -Z'
-
 # grep
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
 
-# sudo
+# sudo, keep environment
 alias s='sudo -E'
 
-# safe rm
-alias rm='mv -t ~/.local/share/Trash/files --backup=t'
+# safe rm, because i can't trust myself
+if [ $(exists gvfs-rm) ]; then
+  alias rm='gvfs-rm'
+else
+  mkdir -p ~/.trash
+  alias rm='mv -t ~/.trash --backup=t'
+fi
 
-# pacman 
+# pacman shortcuts
 alias pacupg='sudo pacman -Syu' # upgrade
 alias pacin='sudo pacman -S'    # install from repo
 alias pacins='sudo pacman -U'   # install from file
@@ -35,7 +51,7 @@ alias pacrem='sudo pacman -Rns' # remove package
 alias pacre='sudo pacman -R'    # remove keep config
 alias paccl='sudo pacman -Sc'   # clean package cache
 
-# git
+# git shortcuts
 alias gs='git status -s -b'
 alias gd='git diff'
 alias gc='git checkout'
@@ -44,7 +60,14 @@ alias gl='git log --oneline --decorate --graph'
 
 # tmux
 alias tmux='TERM=screen-256color-bce tmux'
-alias rand='mpd && mpc ls | mpc add && mpc play'
 
-# better cp
-alias cp='rsync -a --progress'
+# better cp, if available
+if [ $(exists rsync) ]; then
+  alias cp='rsync -a --progress'
+fi
+
+# handy systemd shortcuts
+if [ $(exists systemctl) ]; then
+  alias ctl='sudo systemctl'
+  alias rctl='sudo systemctl daemon-reload'
+fi
