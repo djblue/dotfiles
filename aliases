@@ -5,15 +5,15 @@
 exists () {
   type $1 > /dev/null 2>&1
   if [ "$?" -eq "0" ]; then
-    echo "0" # found
+    echo 0 # found
   else
-    echo "1" # not found
+    echo 1 # not found
   fi
 }
 
 # open file as if in file browser
-if [ $(exists xdg-open) ]; then
-  alias o='xdg-open'
+if [ $(exists xdg-open) -eq 0 ]; then
+  alias open='xdg-open'
 fi
 
 # listing 
@@ -36,7 +36,7 @@ alias egrep='egrep --color=auto'
 alias s='sudo -E'
 
 # safe rm, because i can't trust myself
-if [ $(exists gvfs-rm) ]; then
+if [ $(exists gvfs-rm) -eq 0 ]; then
   alias rm='gvfs-rm'
 else
   mkdir -p ~/.trash
@@ -62,12 +62,12 @@ alias gl='git log --oneline --decorate --graph'
 alias tmux='TERM=screen-256color-bce tmux'
 
 # better cp, if available
-if [ $(exists rsync) ]; then
+if [ $(exists rsync) -eq 0 ]; then
   alias cp='rsync -a --progress'
 fi
 
 # handy systemd shortcuts
-if [ $(exists systemctl) ]; then
+if [ $(exists systemctl) -eq 0 ]; then
   alias ctl='sudo systemctl'
   alias rctl='sudo systemctl daemon-reload'
 fi
