@@ -37,7 +37,7 @@ alias s='sudo -E'
 
 # safe rm, because i can't trust myself
 if [ $(exists gvfs-rm) -eq 0 ]; then
-  alias rm='gvfs-rm'
+  alias rm='gvfs-trash'
 else
   mkdir -p ~/.trash
   alias rm='mv -t ~/.trash --backup=t'
