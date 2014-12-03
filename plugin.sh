@@ -1,6 +1,5 @@
 # script to automate vim plugin installations
 git submodule add https://github.com/scrooloose/nerdtree.git vim/bundle/nerdtree
-git submodule add https://github.com/msanders/snipmate.vim.git vim/bundle/snipmate.vim
 git submodule add https://github.com/altercation/vim-colors-solarized.git vim/bundle/vim-colors-solarized
 git submodule add https://github.com/tpope/vim-fugitive.git vim/bundle/vim-fugitive
 git submodule add https://github.com/jelera/vim-javascript-syntax.git vim/bundle/vim-javascript-syntax
