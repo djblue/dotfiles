@@ -71,3 +71,6 @@ if [ $(exists systemctl) -eq 0 ]; then
   alias ctl='sudo systemctl'
   alias rctl='sudo systemctl daemon-reload'
 fi
+
+# docker aliases
+alias docker='sudo docker'
