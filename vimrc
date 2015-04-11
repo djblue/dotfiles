@@ -21,7 +21,7 @@ set number
 set cursorline 
 
 " Set the text width option to '74'
-set tw=80 wrap linebreak
+set tw=74 wrap linebreak
 
 " Set the tab options
 set smarttab
@@ -29,6 +29,7 @@ set autoindent
 set tabstop=2
 set shiftwidth=2
 set expandtab
+set visualbell
 
 " normal tabs for Makefile and go
 autocmd FileType make setlocal noexpandtab
@@ -142,7 +143,6 @@ noremap <leader>r <C-w>=
 
 " I can finally paste again.
 nnoremap <F2> :set invpaste paste?<CR>
-set pastetoggle=<c-p>
 set showmode
 
 " Toggle spelling 
