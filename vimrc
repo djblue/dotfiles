@@ -30,6 +30,9 @@ set tabstop=2
 set shiftwidth=2
 set expandtab
 
+" normal tabs for Makefile and go
+autocmd FileType make setlocal noexpandtab
+autocmd FileType go setlocal noexpandtab
  
 " Set incremental search
 set incsearch
