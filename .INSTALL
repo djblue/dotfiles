@@ -1,10 +1,11 @@
-https://github.com/scrooloose/nerdtree.git                        vim/bundle/nerdtree
-https://github.com/altercation/vim-colors-solarized.git           vim/bundle/vim-colors-solarized
-https://github.com/tpope/vim-fugitive.git                         vim/bundle/vim-fugitive
-https://github.com/jelera/vim-javascript-syntax.git               vim/bundle/vim-javascript-syntax
-https://github.com/tpope/vim-markdown.git                         vim/bundle/vim-markdown
-https://github.com/Lokaltog/vim-powerline.git                     vim/bundle/vim-powerline
-https://github.com/stephenmckinney/vim-solarized-powerline.git    vim/bundle/vim-solarized-powerline
-https://github.com/tpope/vim-surround.git                         vim/bundle/vim-surround
-https://github.com/kien/ctrlp.vim.git                             vim/bundle/ctrlp.vim
-https://github.com/rupa/z.git                                     .z
+curl https://tpo.pe/pathogen.vim                                      vim/autoload/pathogen.vim
+git  https://github.com/scrooloose/nerdtree.git                       vim/bundle/nerdtree
+git  https://github.com/altercation/vim-colors-solarized.git          vim/bundle/vim-colors-solarized
+git  https://github.com/tpope/vim-fugitive.git                        vim/bundle/vim-fugitive
+git  https://github.com/jelera/vim-javascript-syntax.git              vim/bundle/vim-javascript-syntax
+git  https://github.com/tpope/vim-markdown.git                        vim/bundle/vim-markdown
+git  https://github.com/Lokaltog/vim-powerline.git                    vim/bundle/vim-powerline
+git  https://github.com/stephenmckinney/vim-solarized-powerline.git   vim/bundle/vim-solarized-powerline
+git  https://github.com/tpope/vim-surround.git                        vim/bundle/vim-surround
+git  https://github.com/kien/ctrlp.vim.git                            vim/bundle/ctrlp.vim
+git  https://github.com/rupa/z.git                                    .z

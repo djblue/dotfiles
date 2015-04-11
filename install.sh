@@ -34,19 +34,25 @@ git pull | tab
 for line in $install; do
 
   # the first column is the repo url
-  repo="$(echo $line | cut -f1 -d' ')"
+  method="$(echo $line | tr -s ' ' | cut -f1 -d' ')"
+  url="$(echo $line | tr -s ' ' | cut -f2 -d' ')"
   # the scond column is the destination relative to $dir
-  dest="$dir/$(echo $line | tr -s ' ' | cut -f2 -d' ')"
+  dest="$dir/$(echo $line | tr -s ' ' | cut -f3 -d' ')"
 
-  # the repo doesn't exist, installing
-  if [ ! -d $dest ]; then
-    log "installing $repo"
-    git clone $repo $dest | tab
-  # the repo does exist, updating
-  else
-    log "updating $repo"
-    cd $dest
-    git pull | tab
+  if [ "$method" == "git" ]; then
+    # the repo doesn't exist, installing
+    if [ ! -d $dest ]; then
+      log "installing $url"
+      git clone $url $dest | tab
+    # the repo does exist, updating
+    else
+      log "updating $url"
+      cd $dest
+      git pull | tab
+    fi
+  elif [ "$method" == "curl" ]; then
+    log "installing $url"
+    curl -sL $url > $dest
   fi
 
 done
