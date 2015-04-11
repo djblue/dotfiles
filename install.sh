@@ -1,29 +1,54 @@
 #!/bin/bash
 # Script to easily install dotfiles.
 
-# script variables
-cd $(dirname $0)
-dir="$(pwd)"        # dotfiles directory
-olddir="$dir-old"   # old dotfiles backup directory
-files="$(ls $dir)"  # list of files/folders
+# custom log function.
+log () {
+  echo "==> $@"
+}
 
-IFS=$'\n'
+# will echo line piped it with 4 spaces.
+tab () {
+  while read line; do echo "    $line"; done
+}
 
-install=$(cat .INSTALL)
+IFS=$'\n' # set the for each delimiter to be the new line
 
-script_dir=$(dirname `which $0`);
+dots="https://github.com/djblue/dotfiles.git"   # git repository
+dir="$HOME/dotfiles"                            # install directory
+olddir="$dir-old"                               # backup directory
+files="$(ls $dir)"                              # list of files/folders
+install=$(cat .INSTALL)                         # install manifest
 
+# check if the dotfiles repo is already
+if [ ! -d $dir ]; then
+  log "cloning $dots"
+  git clone $dots $dir | tab
+fi
+
+# always pull the most up-to-date dotfiles
+log "pulling $dots"
+cd $dir
+git pull | tab
+
+# go through all the install repos and install/update all of them
 for line in $install; do
+
+  # the first column is the repo url
   repo="$(echo $line | cut -f1 -d' ')"
-  dest="$script_dir/$(echo $line | tr -s ' ' | cut -f2 -d' ')"
+  # the scond column is the destination relative to $dir
+  dest="$dir/$(echo $line | tr -s ' ' | cut -f2 -d' ')"
+
+  # the repo doesn't exist, installing
   if [ ! -d $dest ]; then
-    echo "cloning $repo to $dest"
-    git clone $repo $dest
+    log "installing $repo"
+    git clone $repo $dest | tab
+  # the repo does exist, updating
   else
-    echo "pulling $repo to $dest"
+    log "updating $repo"
     cd $dest
-    git pull
+    git pull | tab
   fi
+
 done
 
 # excludes
@@ -36,22 +61,16 @@ for file in $files; do
 
     # backup old files; not old symlinks
     if [ ! -L ~/.$file ]; then
-
         mkdir -p $olddir
-
         if [[ -f ~/.$file || -d ~/.$file ]]; then
-            echo "Moving .$file"
+            log "Moving .$file"
             mv ~/.$file $olddir/
         fi
-
-        echo "Symlink: $file"
+        log "Symlink: $file"
         ln -s $dir/$file ~/.$file
-     
     else # dotfile already exits as link
-
-        echo "Updating Symlink: $file"
+        log "Updating Symlink: $file"
         ln -nsf $dir/$file ~/.$file
-
     fi
 
 done
