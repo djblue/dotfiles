@@ -1,0 +1,10 @@
+https://github.com/scrooloose/nerdtree.git                        vim/bundle/nerdtree
+https://github.com/altercation/vim-colors-solarized.git           vim/bundle/vim-colors-solarized
+https://github.com/tpope/vim-fugitive.git                         vim/bundle/vim-fugitive
+https://github.com/jelera/vim-javascript-syntax.git               vim/bundle/vim-javascript-syntax
+https://github.com/tpope/vim-markdown.git                         vim/bundle/vim-markdown
+https://github.com/Lokaltog/vim-powerline.git                     vim/bundle/vim-powerline
+https://github.com/stephenmckinney/vim-solarized-powerline.git    vim/bundle/vim-solarized-powerline
+https://github.com/tpope/vim-surround.git                         vim/bundle/vim-surround
+https://github.com/kien/ctrlp.vim.git                             vim/bundle/ctrlp.vim
+https://github.com/rupa/z.git                                     .z
