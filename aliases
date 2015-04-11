@@ -1,5 +1,7 @@
 # aliases
 
+alias ..='cd ../'
+
 # handy function to check if a command
 # exits
 exists () {
@@ -75,3 +77,7 @@ fi
 
 # docker aliases
 alias docker='sudo docker'
+alias docker-clean='docker rm $(docker ps -aq)'
+
+# npm
+alias npm="npm --python=python2"
