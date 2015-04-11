@@ -57,7 +57,6 @@ alias pacupg='pacin archlinux-keyring --noconfirm && pac -Syu' # upgrade
 alias gs='git status -s -b'
 alias gd='git diff'
 alias gc='git checkout'
-alias go='git commit'
 alias gl='git log --oneline --decorate --graph'
 
 # tmux
