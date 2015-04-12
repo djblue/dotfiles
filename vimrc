@@ -1,6 +1,8 @@
 " Automatric reloading of .vimrc
 autocmd! bufwritepost .vimrc source %
 
+let g:ctrlp_custom_ignore = 'node_modules\|DS_Store\|git'
+
 " load all plugins
 call pathogen#infect()
 
@@ -61,18 +63,9 @@ set nowritebackup
 " Disable backup copy
 set backupcopy=yes
 
-" Set the default color theme
-set t_Co=256
-
 " Colors
-"call togglebg#map("<F5>")
 syntax enable
-"let g:solarized_termtrans=0.85
-"let g:solarized_termcolors=256
-set background=dark
-colorscheme solarized
-
-let g:Powerline_colorscheme='solarized16_dark'
+colorscheme monokai
 
 "Disable ex-mode
 map Q <Nop>

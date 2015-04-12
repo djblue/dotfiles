@@ -136,7 +136,7 @@ function prompt () {
 
   branch="$(current_branch)"
   if [ "$branch" != "" ]; then
-    branch="on $purple$branch$reset"
+    branch="on $red$branch$reset"
   fi
 
   PS1="${ret}${user} at ${host} in ${dir} ${branch}\n% "

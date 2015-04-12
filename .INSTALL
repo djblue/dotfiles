@@ -1,6 +1,6 @@
 curl https://tpo.pe/pathogen.vim                                      vim/autoload/pathogen.vim
 git  https://github.com/scrooloose/nerdtree.git                       vim/bundle/nerdtree
-git  https://github.com/altercation/vim-colors-solarized.git          vim/bundle/vim-colors-solarized
+git  https://github.com/sickill/vim-monokai.git                       vim/bundle/vim-monokai
 git  https://github.com/tpope/vim-fugitive.git                        vim/bundle/vim-fugitive
 git  https://github.com/jelera/vim-javascript-syntax.git              vim/bundle/vim-javascript-syntax
 git  https://github.com/tpope/vim-markdown.git                        vim/bundle/vim-markdown
