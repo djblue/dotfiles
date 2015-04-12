@@ -52,7 +52,6 @@ set nofoldenable
 set foldlevel=0
 
 " Spelling
-set spell
 set spelllang=en_us
 
 " Disable swap files
