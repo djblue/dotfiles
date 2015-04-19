@@ -14,7 +14,7 @@ ret="%{$fg[red]%}"
 user="%{$fg[blue]%}"
 host="%{$fg[yellow]%}"
 dir="%{$fg[green]%}"
-repo="%{$fg[magenta]%}"
+repo="%{$fg[red]%}"
 
 # reset color
 rs="%{$reset_color%}"
