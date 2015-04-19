@@ -52,6 +52,7 @@ for line in $install; do
     fi
   elif [ "$method" == "curl" ]; then
     log "installing $url"
+    mkdir -p "$(dirname $dest)"
     curl -sL $url > $dest
   fi
 
