@@ -16,10 +16,8 @@ IFS=$'\n' # set the for each delimiter to be the new line
 dots="https://github.com/djblue/dotfiles.git"   # git repository
 dir="$HOME/dotfiles"                            # install directory
 olddir="$dir-old"                               # backup directory
-files="$(ls $dir)"                              # list of files/folders
-install=$(cat .INSTALL)                         # install manifest
 
-# check if the dotfiles repo is already
+# check if the dotfiles repo is already cloned
 if [ ! -d $dir ]; then
   log "cloning $dots"
   git clone $dots $dir | tab
@@ -31,7 +29,7 @@ cd $dir
 git pull | tab
 
 # go through all the install repos and install/update all of them
-for line in $install; do
+for line in $(cat "$dir/.INSTALL"); do
 
   # the first column is the repo url
   method="$(echo $line | tr -s ' ' | cut -f1 -d' ')"
@@ -61,7 +59,7 @@ done
 # excludes
 exclude="$0 README.md"
 
-for file in $files; do
+for file in $(ls $dir); do
 
     # skip files in the exclude list
     echo $exclude | grep $file > /dev/null && continue
