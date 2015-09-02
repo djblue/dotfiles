@@ -75,7 +75,6 @@ if [ $(exists systemctl) -eq 0 ]; then
 fi
 
 # docker aliases
-alias docker='sudo docker'
 alias docker-clean='docker rm $(docker ps -aq)'
 
 # npm
