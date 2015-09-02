@@ -46,14 +46,13 @@ else
 fi
 
 # pacman shortcuts
-alias pac='sudo pacman' # sudo pacman command
-alias pacin='pac -S'    # install from repo
-alias pacins='pac -U'   # install from file
-alias pacrem='pac -Rns' # remove package
-alias pacre='pac -R'    # remove keep config
-alias paccl='pac -Sc'   # clean package cache
-# before upgrade, need to update keyring
-alias pacupg='pacin archlinux-keyring --noconfirm && pac -Syu' # upgrade
+alias pacman='sudo pacman --color=auto'
+alias pacin='pacman -S'    # install from repo
+alias pacins='pacman -U'   # install from file
+alias pacrem='pacman -Rns' # remove package
+alias pacre='pacman -R'    # remove keep config
+alias paccl='pacman -Sc'   # clean package cache
+alias pacupg='pacman -Syu' # upgrade
 
 # git shortcuts
 alias gs='git status -s -b'
