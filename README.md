@@ -7,4 +7,4 @@ to help bootstrap my system defaults.
 
 To install the dotfiles, do:
 
-    curl -sL http://git.io/vvvQo | sh
+    curl -sL https://git.io/vvvQo | sh
