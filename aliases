@@ -4,22 +4,29 @@ alias ..='cd ../'
 
 # handy function to check if a command
 # exits
-exists () {
+exists() {
   type $1 > /dev/null 2>&1
   if [ "$?" -eq "0" ]; then
-    echo 0 # found
+    return 0 # found
   else
-    echo 1 # not found
+    return 1 # not found
+  fi
+}
+
+is_osx() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    return 0
+  else
+    return 1
   fi
 }
 
 # open file as if in file browser
-if [ $(exists xdg-open) -eq 0 ]; then
-  alias open='xdg-open'
-fi
+exists xdg-open && alias open='xdg-open'
 
 # listing 
 alias ls='ls --color=auto'
+is_osx && alias ls='ls -G'
 alias ll='ls -AlF'
 alias la='ls -A'
 alias l='ls -CF'
@@ -38,12 +45,14 @@ alias egrep='egrep --color=auto'
 alias s='sudo -E'
 
 # safe rm, because i can't trust myself
-if [ $(exists gvfs-rm) -eq 0 ]; then
-  alias rm='gvfs-trash'
-else
-  mkdir -p ~/.trash
-  alias rm='mv -t ~/.trash --backup=t'
+trash() {
+  mv -iv $@ "$HOME/.Trash"
+}
+if [ -d "$HOME/.Trash" ]; then
+  is_osx && alias rm='trash'
 fi
+
+exists gvfs-trash && alias rm='gvfs-trash'
 
 # pacman shortcuts
 alias pacman='sudo pacman --color=auto'
@@ -64,18 +73,14 @@ alias gl='git log --oneline --decorate --graph'
 alias tmux='TERM=screen-256color-bce tmux'
 
 # better cp, if available
-if [ $(exists rsync) -eq 0 ]; then
-  alias cp='rsync -a --progress'
-fi
+exists rsync && alias cp='rsync -a --progress'
 
 # handy systemd shortcuts
-if [ $(exists systemctl) -eq 0 ]; then
-  alias ctl='sudo systemctl'
-  alias rctl='sudo systemctl daemon-reload'
-fi
+alias ctl='sudo systemctl'
+alias rctl='sudo systemctl daemon-reload'
 
 # docker aliases
 alias docker-clean='docker rm $(docker ps -aq)'
 
 # npm
-alias npm="npm --python=python2"
+exists python2 && alias npm="npm --python=python2"
