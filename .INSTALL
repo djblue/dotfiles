@@ -9,4 +9,5 @@ git  https://github.com/stephenmckinney/vim-solarized-powerline.git   vim/bundle
 git  https://github.com/tpope/vim-surround.git                        vim/bundle/vim-surround
 git  https://github.com/kien/ctrlp.vim.git                            vim/bundle/ctrlp.vim
 git  https://github.com/SirVer/ultisnips.git                          vim/bundle/ultisnips
+git  https://github.com/ConradIrwin/vim-bracketed-paste.git           vim/bundle/vim-bracketed-paste
 git  https://github.com/rupa/z.git                                    .z
