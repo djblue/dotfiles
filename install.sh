@@ -57,7 +57,7 @@ for line in $(cat "$dir/.INSTALL"); do
 done
 
 # excludes
-exclude="$0 README.md"
+exclude="README.md install.sh"
 
 for file in $(ls $dir); do
 
