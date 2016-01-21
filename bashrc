@@ -128,7 +128,7 @@ function current_branch {
 function prompt () {
 
   local exit="$?"
-  ret="$red\$(status_code $exit)$reset"
+  ret="$red$(status_code $exit)$reset"
 
   user="$blue\u$reset"
   host="$yellow\h$reset"
