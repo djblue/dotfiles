@@ -16,6 +16,9 @@ let g:UltiSnipsEditSplit="vertical"
 " always show that status line
 set laststatus=2
 
+" faster redrawing
+set ttyfast
+
 " Set the boolean number option to true set number set number
 set number
 
@@ -65,6 +68,9 @@ set backupcopy=yes
 " Colors
 syntax enable
 colorscheme monokai
+
+" enable mouse scrolling
+set mouse=a
 
 "Disable ex-mode
 map Q <Nop>
