@@ -44,16 +44,6 @@ alias egrep='egrep --color=auto'
 # sudo, keep environment
 alias s='sudo -E'
 
-# safe rm, because i can't trust myself
-trash() {
-  mv -iv $@ "$HOME/.Trash"
-}
-if [ -d "$HOME/.Trash" ]; then
-  is_osx && alias rm='trash'
-fi
-
-exists gvfs-trash && alias rm='gvfs-trash'
-
 # pacman shortcuts
 alias pacman='sudo pacman --color=auto'
 alias pacin='pacman -S'    # install from repo
