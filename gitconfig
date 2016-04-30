@@ -5,5 +5,10 @@
 	default = simple
 [core]
 	editor = vim
+	autocrlf = false
 [color]
 	ui = true
+[difftool]
+	prompt = false
+[merge]
+	tool = vimdiff
