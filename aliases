@@ -1,16 +1,9 @@
 # aliases
 
-alias ..='cd ../'
-
 # handy function to check if a command
 # exits
 exists() {
   type $1 > /dev/null 2>&1
-  if [ "$?" -eq "0" ]; then
-    return 0 # found
-  else
-    return 1 # not found
-  fi
 }
 
 is_osx() {
@@ -74,3 +67,5 @@ alias docker-clean='docker rm $(docker ps -aq)'
 
 # npm
 exists python2 && alias npm="npm --python=python2"
+
+alias ..='cd ../'
