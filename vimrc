@@ -1,10 +1,37 @@
 " Automatric reloading of .vimrc
 autocmd! bufwritepost .vimrc source %
 
-let g:ctrlp_custom_ignore = 'node_modules\|DS_Store\|git'
+set nocompatible              " be iMproved, required
+filetype off                  " required
 
-" load all plugins
-call pathogen#infect()
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+" let Vundle manage Vundle, required
+Plugin 'VundleVim/Vundle.vim'
+
+Plugin 'scrooloose/nerdtree'
+Plugin 'tpope/vim-fugitive'
+Plugin 'jelera/vim-javascript-syntax'
+Plugin 'tpope/vim-markdown'
+Plugin 'altercation/vim-colors-solarized'
+Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
+Plugin 'tpope/vim-surround'
+Plugin 'kien/ctrlp.vim'
+Plugin 'SirVer/ultisnips'
+Plugin 'ConradIrwin/vim-bracketed-paste'
+Plugin 'jpalardy/vim-slime'
+
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+filetype plugin indent on    " required
+
+let g:slime_target = "tmux"
+
+let g:ctrlp_custom_ignore = 'node_modules\|DS_Store\|git'
+let g:ctrlp_cmd='CtrlP :pwd'
 
 " snippets
 let g:UltiSnipsExpandTrigger="<tab>"
@@ -67,12 +94,20 @@ set backupcopy=yes
 
 " Colors
 syntax enable
-colorscheme monokai
+try
+  colorscheme solarized
+catch /^Vim\%((\a\+)\)\=:E185/
+  " ohh well
+endtry
+let g:airline_powerline_fonts = 1
 
 " enable mouse scrolling
 set mouse=a
 
-"Disable ex-mode
+" fix copy paste in vim for tmux
+set clipboard=unnamed
+
+" Disable ex-mode
 map Q <Nop>
 
 " It hurts to hit \ all of the time :-(

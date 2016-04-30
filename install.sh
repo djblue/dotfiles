@@ -1,81 +1,37 @@
 #!/bin/bash
 # Script to easily install dotfiles.
 
-# custom log function.
-log () {
-  echo "==> $@"
-}
-
-# will echo line piped it with 4 spaces.
-tab () {
-  while read line; do echo "    $line"; done
-}
-
-IFS=$'\n' # set the for each delimiter to be the new line
+set -e # exit on first error
 
 dots="https://github.com/djblue/dotfiles.git"   # git repository
 dir="$HOME/dotfiles"                            # install directory
 olddir="$dir-old"                               # backup directory
 
+doall() { while read line; do $1 $line; done; }
+comment() { echo "    $@"; }
+run() { echo "==> $@"; $@ 2>&1 | doall comment; }
+
+symlink() {
+  if [ ! -L ~/.$1 ]; then
+    [[ -f ~/.$1 ]] && run mv ~/.$1 $olddir/
+    run ln -s $dir/$1 ~/.$1
+  fi
+}
+
 # check if the dotfiles repo is already cloned
-if [ ! -d $dir ]; then
-  log "cloning $dots"
-  git clone $dots $dir | tab
-fi
+[[ ! -d $dir ]] && run git clone $dots $dir
 
 # always pull the most up-to-date dotfiles
-log "pulling $dots"
-cd $dir
-git pull | tab
+cd $dir && run pwd
+run git pull
 
-# go through all the install repos and install/update all of them
-for line in $(cat "$dir/.INSTALL"); do
+# create backup directory
+[[ ! -d $olddir ]] && run mkdir -p $olddir
 
-  # the first column is the repo url
-  method="$(echo $line | tr -s ' ' | cut -f1 -d' ')"
-  url="$(echo $line | tr -s ' ' | cut -f2 -d' ')"
-  # the scond column is the destination relative to $dir
-  dest="$dir/$(echo $line | tr -s ' ' | cut -f3 -d' ')"
+# symlink all the dotfiles
+ls $dir | grep -vE 'README.md|install.sh' | doall symlink
 
-  if [ "$method" == "git" ]; then
-    # the repo doesn't exist, installing
-    if [ ! -d $dest ]; then
-      log "installing $url"
-      git clone $url $dest | tab
-    # the repo does exist, updating
-    else
-      log "updating $url"
-      cd $dest
-      git pull | tab
-    fi
-  elif [ "$method" == "curl" ]; then
-    log "installing $url"
-    mkdir -p "$(dirname $dest)"
-    curl -sL $url > $dest
-  fi
-
-done
-
-# excludes
-exclude="README.md install.sh"
-
-for file in $(ls $dir); do
-
-    # skip files in the exclude list
-    echo $exclude | grep $file > /dev/null && continue
-
-    # backup old files; not old symlinks
-    if [ ! -L ~/.$file ]; then
-        mkdir -p $olddir
-        if [[ -f ~/.$file || -d ~/.$file ]]; then
-            log "Moving .$file"
-            mv ~/.$file $olddir/
-        fi
-        log "Symlink: $file"
-        ln -s $dir/$file ~/.$file
-    else # dotfile already exits as link
-        log "Updating Symlink: $file"
-        ln -nsf $dir/$file ~/.$file
-    fi
-
-done
+# install vundle to manage vim bundles
+if [ ! -d "$HOME/.vim/bundle/Vundle.vim" ]; then
+  run git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+fi
