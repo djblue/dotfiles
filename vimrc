@@ -23,10 +23,17 @@ Plugin 'kien/ctrlp.vim'
 Plugin 'SirVer/ultisnips'
 Plugin 'ConradIrwin/vim-bracketed-paste'
 Plugin 'jpalardy/vim-slime'
+Plugin 'luochen1990/rainbow'
+Plugin 'vim-scripts/paredit.vim'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 filetype plugin indent on    " required
+
+let g:rainbow_active = 1
+let g:rainbow_conf = {
+\ 'ctermfgs': ['darkred', 'darkblue', 'gray', 'lightblue', 'darkmagenta']
+\ }
 
 let g:slime_target = "tmux"
 
