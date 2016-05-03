@@ -37,7 +37,7 @@ let g:rainbow_conf = {
 
 let g:slime_target = "tmux"
 
-let g:ctrlp_custom_ignore = 'node_modules\|DS_Store\|git'
+let g:ctrlp_custom_ignore = 'node_modules\|DS_Store\|git\|target'
 let g:ctrlp_cmd='CtrlP :pwd'
 
 " snippets
