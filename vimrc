@@ -103,6 +103,7 @@ set backupcopy=yes
 syntax enable
 try
   colorscheme solarized
+  set background=light
 catch /^Vim\%((\a\+)\)\=:E185/
   " ohh well
 endtry
