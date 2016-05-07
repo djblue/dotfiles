@@ -100,6 +100,7 @@ set nowritebackup
 set backupcopy=yes
 
 " Colors
+set t_Co=256
 syntax enable
 try
   colorscheme solarized
