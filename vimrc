@@ -197,9 +197,6 @@ noremap <leader>t :NERDTree<CR>
 " Shortcut to rapidly toggle `set list`
 nmap <leader>l :set list!<CR>
 
-" Use the same symbols as TextMate for tabstops and EOLs
-set listchars=tab:▸\ ,eol:¬
-
 " Open the .vimrc file
 command! V :e ~/.vimrc
 noremap <leader>v :tabnew ~/.vimrc <CR>
