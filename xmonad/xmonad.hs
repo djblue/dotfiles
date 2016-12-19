@@ -1,0 +1,51 @@
+import Graphics.X11.ExtraTypes.XF86
+import XMonad
+import XMonad.Config.Desktop
+import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.ManageDocks
+import XMonad.Layout.EqualSpacing
+import XMonad.Util.EZConfig(additionalKeys)
+import XMonad.Util.Paste
+import XMonad.Util.Run(spawnPipe)
+
+baseConfig = desktopConfig
+
+main = xmonad =<< xmobar (baseConfig
+    { modMask = mod1Mask
+    , terminal = "urxvt"
+
+    , normalBorderColor = "#839496"
+    , focusedBorderColor = "#dc322f"
+    , borderWidth = 2
+
+    -- topbar padding
+    , manageHook = manageDocks <+> manageHook baseConfig
+    , layoutHook = avoidStruts $ equalSpacing 20 6 0 1 $ layoutHook baseConfig
+    , handleEventHook = docksEventHook <+> handleEventHook baseConfig
+
+    } `additionalKeys`
+    [ ((mod1Mask .|. shiftMask, xK_z), spawn "dmenu_run")
+
+    -- emulate media keys for keyboards without them
+    ,	((mod1Mask .|. shiftMask, xK_k), spawn "amixer -q sset Master 5%- unmute")
+    ,	((mod1Mask .|. shiftMask, xK_m), spawn "amixer -q sset Master toggle")
+    ,	((mod1Mask .|. shiftMask, xK_i), spawn "amixer -q sset Master 5%+ unmute")
+    ,	((mod1Mask .|. shiftMask, xK_p), spawn "playerctl play-pause")
+    ,	((mod1Mask .|. shiftMask, xK_j), spawn "playerctl previous")
+    ,	((mod1Mask .|. shiftMask, xK_l), spawn "playerctl next")
+
+    -- map screen backlight keys
+    , ((0, xF86XK_MonBrightnessDown), spawn "xbacklight -dec 50")
+    , ((0, xF86XK_MonBrightnessUp),   spawn "xbacklight -inc 50")
+
+    -- map sounds media keys
+    ,	((0, xF86XK_AudioLowerVolume), spawn "amixer -q sset Master 5%- unmute")
+    ,	((0, xF86XK_AudioMute), spawn "amixer -q sset Master toggle")
+    ,	((0, xF86XK_AudioRaiseVolume), spawn "amixer -q sset Master 5%+ unmute")
+    ,	((0, xF86XK_AudioPlay), spawn "playerctl play-pause")
+    ,	((0, xF86XK_AudioPrev), spawn "playerctl previous")
+    ,	((0, xF86XK_AudioNext), spawn "playerctl next")
+
+    ,	((mod1Mask, xK_i), pasteSelection)
+    ])
+

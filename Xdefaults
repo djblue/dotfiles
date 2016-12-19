@@ -1,6 +1,4 @@
 !----------------------------------------------
-! Xcursor settings
-!----------------------------------------------
 
 Xcursor.theme:      Vanilla-DMZ-AA
 
@@ -19,8 +17,8 @@ Xft.hintstyle:      hintslight
 !----------------------------------------------
 
 ! Fonts
-urxvt*font:         xft:Monospace:pixelsize=16
-urxvt*boldFont:     xft:Monospace:pixelsize=16
+urxvt*font:         xft:Droid Sans Mono Slashed for Powerline:pixelsize=16
+urxvt*boldFont:     xft:Droid Sans Mono Slashed for Powerline:pixelsize=16
 
 ! Fix font space
 urxvt*letterSpace:  -1
