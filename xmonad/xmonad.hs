@@ -49,6 +49,8 @@ main = xmonad =<< xmobar (baseConfig
 
     ,	((mod1Mask, xK_p), spawn $ menu "dmenu_run")
     ,	((mod1Mask, xK_z), spawn $ menu "passmenu")
+
+    , ((mod4Mask, xK_l), spawn "slock")
     ])
 
 menu m = intercalate " " [ m
