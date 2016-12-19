@@ -21,7 +21,7 @@ main = xmonad =<< xmobar (baseConfig
 
     -- topbar padding
     , manageHook = manageDocks <+> manageHook baseConfig
-    , layoutHook = avoidStruts $ equalSpacing 20 6 0 1 $ layoutHook baseConfig
+    , layoutHook = avoidStruts $ equalSpacing 16 0 0 0 $ layoutHook baseConfig
     , handleEventHook = docksEventHook <+> handleEventHook baseConfig
 
     } `additionalKeys`

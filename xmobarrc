@@ -1,20 +1,20 @@
 Config { font = "xft:Droid Sans Mono Slashed for Powerline"
        , bgColor = "#002b36"
        , fgColor = "#657b83"
+       , position = TopSize C 100 32
        , additionalFonts = ["xft:fontawesome"
                            ]
        , allDesktops = True
        , commands = [ Run UnsafeStdinReader
                     , Run Memory ["-t", "Mem: <usedratio>%" ] 10
-                    , Run Date "%a %b %_d %l:%M" "date" 10
+                    , Run Date "%A %d // %I:%M %p" "date" 10
                     , Run BatteryP ["BAT0"]
                                    ["-t", "<acstatus>"
                                    , "-L", "10", "-H", "80"
                                    , "-l", "red", "-h", "green"
                                    , "--", "-O", "Charging", "-o", "Battery: <left>%"
                                    ] 10
-                    --, Run Mpris2 "spotify" ["-t", "<artist> - [<composer>] <title>"] 10
                     ]
        , alignSep = "}{"
-       , template = "%UnsafeStdinReader% }{ %battery% %memory% %date%"
+       , template = " %UnsafeStdinReader% }{ %date% "
        }
