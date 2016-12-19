@@ -7,6 +7,7 @@ import XMonad.Layout.EqualSpacing
 import XMonad.Util.EZConfig(additionalKeys)
 import XMonad.Util.Paste
 import XMonad.Util.Run(spawnPipe)
+import Data.List
 
 baseConfig = desktopConfig
 
@@ -24,7 +25,7 @@ main = xmonad =<< xmobar (baseConfig
     , handleEventHook = docksEventHook <+> handleEventHook baseConfig
 
     } `additionalKeys`
-    [ ((mod1Mask .|. shiftMask, xK_z), spawn "dmenu_run")
+    [ ((mod1Mask, xK_i), pasteSelection)
 
     -- emulate media keys for keyboards without them
     ,	((mod1Mask .|. shiftMask, xK_k), spawn "amixer -q sset Master 5%- unmute")
@@ -46,6 +47,14 @@ main = xmonad =<< xmobar (baseConfig
     ,	((0, xF86XK_AudioPrev), spawn "playerctl previous")
     ,	((0, xF86XK_AudioNext), spawn "playerctl next")
 
-    ,	((mod1Mask, xK_i), pasteSelection)
+    ,	((mod1Mask, xK_p), spawn $ menu "dmenu_run")
+    ,	((mod1Mask, xK_z), spawn $ menu "passmenu")
     ])
+
+menu m = intercalate " " [ m
+                         , "-fn 'xft:Droid Sans Mono Slashed for Powerline'"
+                         , "-nb '#002b36'"
+                         , "-nf '#657b83'"
+                         , "-sb '#859900'"
+                         ]
 
