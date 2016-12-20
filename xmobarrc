@@ -7,7 +7,7 @@ Config { font = "xft:Droid Sans Mono Slashed for Powerline"
        , allDesktops = True
        , commands = [ Run UnsafeStdinReader
                     , Run Memory ["-t", "Mem: <usedratio>%" ] 10
-                    , Run Date "%A %d // %I:%M %p" "date" 10
+                    , Run Date "<fn=1>\61463</fn> %A %d // %I:%M %p" "date" 10
                     , Run Battery ["--template", "<acstatus> <left>"
                                   , "--Low"    , "10"
                                   , "--High"   , "80"
