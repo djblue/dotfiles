@@ -8,13 +8,22 @@ Config { font = "xft:Droid Sans Mono Slashed for Powerline"
        , commands = [ Run UnsafeStdinReader
                     , Run Memory ["-t", "Mem: <usedratio>%" ] 10
                     , Run Date "%A %d // %I:%M %p" "date" 10
-                    , Run BatteryP ["BAT0"]
-                                   ["-t", "<acstatus>"
-                                   , "-L", "10", "-H", "80"
-                                   , "-l", "red", "-h", "green"
-                                   , "--", "-O", "Charging", "-o", "Battery: <left>%"
-                                   ] 10
+                    , Run Battery ["--template", "<acstatus> <left>"
+                                  , "--Low"    , "10"
+                                  , "--High"   , "80"
+                                  , "--low"    , "#dc322f" -- red
+                                  , "--normal" , "#268bd2" -- blue
+                                  , "--high"   , "#859900" -- green
+
+                                  , "--" -- battery specific options
+                                  -- discharging status
+                                  , "-o", "<fn=1>\61671</fn>" -- fa-bolt
+                                  -- AC "on" status
+                                  , "-O", "<fn=1>\61926</fn>" -- fa-plug
+                                  -- charged status
+                                  , "-i", "<fn=1>\62016</fn>" -- fa-battery-full
+                                  ] 10
                     ]
        , alignSep = "}{"
-       , template = " %UnsafeStdinReader% }{ %date% "
+       , template = " %UnsafeStdinReader% }{ %battery% | %date% "
        }
