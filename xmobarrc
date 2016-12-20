@@ -32,7 +32,9 @@ Config { font = "xft:Droid Sans Mono Slashed for Powerline"
                                             , "--normal" , "#268bd2" -- blue
                                             , "--high"   , "#859900" -- green
                                             ] 10
+                    , Run Volume "default" "Master" ["-t", "<fn=1>\61480</fn> <volume>"
+                                                    ] 10
                     ]
        , alignSep = "}{"
-       , template = " %UnsafeStdinReader% }{ %wlp4s0wi% | %bright% | %battery% | %date% "
+       , template = " %UnsafeStdinReader% }{ %default:Master% | %wlp4s0wi% | %bright% | %battery% | %date% "
        }
