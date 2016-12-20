@@ -23,7 +23,11 @@ Config { font = "xft:Droid Sans Mono Slashed for Powerline"
                                   -- charged status
                                   , "-i", "<fn=1>\62016</fn>" -- fa-battery-full
                                   ] 10
+                    , Run Brightness ["-t", "<fn=1>\61675</fn> <percent> %"
+                                     , "--"
+                                     , "-D", "gmux_backlight"
+                                     ] 10
                     ]
        , alignSep = "}{"
-       , template = " %UnsafeStdinReader% }{ %battery% | %date% "
+       , template = " %UnsafeStdinReader% }{ %bright% | %battery% | %date% "
        }
