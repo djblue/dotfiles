@@ -27,7 +27,12 @@ Config { font = "xft:Droid Sans Mono Slashed for Powerline"
                                      , "--"
                                      , "-D", "gmux_backlight"
                                      ] 10
+                    , Run Wireless "wlp4s0" [ "-t", "<fn=1>\61931</fn> <essid> <quality>"
+                                            , "--low"    , "#dc322f" -- red
+                                            , "--normal" , "#268bd2" -- blue
+                                            , "--high"   , "#859900" -- green
+                                            ] 10
                     ]
        , alignSep = "}{"
-       , template = " %UnsafeStdinReader% }{ %bright% | %battery% | %date% "
+       , template = " %UnsafeStdinReader% }{ %wlp4s0wi% | %bright% | %battery% | %date% "
        }
