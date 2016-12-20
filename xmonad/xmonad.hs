@@ -11,7 +11,7 @@ import Data.List
 
 baseConfig = desktopConfig
 
-main = xmonad =<< xmobar (baseConfig
+main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
     { modMask = mod1Mask
     , terminal = "urxvt"
 
@@ -60,4 +60,21 @@ menu m = intercalate " " [ m
                          , "-sb '#859900'"
                          , "-lh '32'"
                          ]
+
+action id = intercalate "" [ "<action=`xdotool key alt+"
+                           , id
+                           , "`>"
+                           , id
+                           , "</action>"
+                           ]
+
+myPP = xmobarPP { ppCurrent = xmobarColor "#859900" ""
+                , ppVisible = wrap "(" ")" . action
+                , ppHidden = action
+                , ppTitle = shorten 64
+                , ppSep = " | "
+                , ppLayout = const ""
+                }
+
+toggleStructsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
 
