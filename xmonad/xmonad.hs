@@ -1,18 +1,20 @@
+import Data.List
 import Graphics.X11.ExtraTypes.XF86
 import XMonad
 import XMonad.Config.Desktop
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.SetWMName
 import XMonad.Layout.EqualSpacing
 import XMonad.Util.EZConfig(additionalKeys)
 import XMonad.Util.Paste
 import XMonad.Util.Run(spawnPipe)
-import Data.List
 
 baseConfig = desktopConfig
 
 main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
     { modMask = mod1Mask
+    , startupHook = setWMName "LG3D"
     , terminal = "urxvt"
 
     , normalBorderColor = "#839496"
