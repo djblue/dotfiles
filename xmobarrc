@@ -1,8 +1,8 @@
-Config { font = "xft:Droid Sans Mono Slashed for Powerline"
+Config { font = "xft:Droid Sans Mono Slashed for Powerline:pixelsize=18"
        , bgColor = "#002b36"
        , fgColor = "#657b83"
        , position = TopSize C 100 32
-       , additionalFonts = ["xft:fontawesome"
+       , additionalFonts = ["xft:fontawesome:pixelsize=18"
                            ]
        , allDesktops = True
        , commands = [ Run UnsafeStdinReader

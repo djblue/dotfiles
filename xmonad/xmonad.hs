@@ -54,7 +54,7 @@ main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
     ])
 
 menu m = intercalate " " [ m
-                         , "-fn 'xft:Droid Sans Mono Slashed for Powerline'"
+                         , "-fn 'xft:Droid Sans Mono Slashed for Powerline:pixelsize=18'"
                          , "-nb '#002b36'"
                          , "-nf '#657b83'"
                          , "-sb '#859900'"

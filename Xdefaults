@@ -6,7 +6,7 @@ Xcursor.theme:      Vanilla-DMZ-AA
 ! Xft settings
 !----------------------------------------------
 
-Xft.dpi:            220
+Xft.dpi:            96
 Xft.antialias:      true
 Xft.rgba:           rgb
 Xft.hinting:        true
@@ -17,8 +17,8 @@ Xft.hintstyle:      hintslight
 !----------------------------------------------
 
 ! Fonts
-urxvt*font:         xft:Droid Sans Mono Slashed for Powerline:pixelsize=38
-urxvt*boldFont:     xft:Droid Sans Mono Slashed for Powerline:pixelsize=38
+urxvt*font:         xft:Droid Sans Mono Slashed for Powerline:pixelsize=18
+urxvt*boldFont:     xft:Droid Sans Mono Slashed for Powerline:pixelsize=18
 
 ! Fix font space
 urxvt*letterSpace:  -1
