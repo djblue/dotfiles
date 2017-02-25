@@ -28,7 +28,7 @@ main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
     , handleEventHook = docksEventHook <+> handleEventHook baseConfig <+> fullscreenEventHook
 
     } `additionalKeys`
-    [ ((mod1Mask, xK_i), pasteSelection)
+    [ ((mod1Mask, xK_i), sendKey shiftMask xK_Insert)
 
     -- emulate media keys for keyboards without them
     ,	((mod1Mask .|. shiftMask, xK_k), spawn "amixer -q sset Master 5%- unmute")
