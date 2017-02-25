@@ -104,7 +104,7 @@ set t_Co=256
 syntax enable
 try
   colorscheme solarized
-  set background=light
+  set background=dark
 catch /^Vim\%((\a\+)\)\=:E185/
   " ohh well
 endtry
