@@ -39,8 +39,8 @@ main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
     ,	((mod1Mask .|. shiftMask, xK_l), spawn "playerctl next")
 
     -- map screen backlight keys
-    , ((0, xF86XK_MonBrightnessDown), spawn "xbacklight -dec 10")
-    , ((0, xF86XK_MonBrightnessUp),   spawn "xbacklight -inc 10")
+    , ((0, xF86XK_MonBrightnessDown), spawn "xbacklight -dec 25")
+    , ((0, xF86XK_MonBrightnessUp),   spawn "xbacklight -inc 25")
 
     -- map sounds media keys
     ,	((0, xF86XK_AudioLowerVolume), spawn "amixer -q sset Master 5%- unmute")
