@@ -6,8 +6,8 @@ Config { font = "xft:Droid Sans Mono Slashed for Powerline:pixelsize=18"
                            ]
        , allDesktops = True
        , commands = [ Run UnsafeStdinReader
-                    , Run Memory ["-t", "Mem: <usedratio>%" ] 10
-                    , Run Date "<fn=1>\61463</fn> %A %d // %I:%M %p" "date" 10
+                    , Run Memory ["-t", "Mem: <usedratio>%" ] 60
+                    , Run Date "<fn=1>\61463</fn> %A %d // %I:%M %p" "date" 60
                     , Run Battery ["--template", "<acstatus> <left>"
                                   , "--Low"    , "10"
                                   , "--High"   , "80"
@@ -22,18 +22,18 @@ Config { font = "xft:Droid Sans Mono Slashed for Powerline:pixelsize=18"
                                   , "-O", "<fn=1>\61926</fn>" -- fa-plug
                                   -- charged status
                                   , "-i", "<fn=1>\62016</fn>" -- fa-battery-full
-                                  ] 10
+                                  ] 60
                     , Run Brightness ["-t", "<fn=1>\61675</fn> <percent>"
                                      , "--"
                                      , "-D", "gmux_backlight"
-                                     ] 10
+                                     ] 60
                     , Run Wireless "wlp4s0" [ "-t", "<fn=1>\61931</fn> <essid> <quality>"
                                             , "--low"    , "#dc322f" -- red
                                             , "--normal" , "#268bd2" -- blue
                                             , "--high"   , "#859900" -- green
-                                            ] 10
+                                            ] 60
                     , Run Volume "default" "Master" ["-t", "<fn=1>\61480</fn> <volume>"
-                                                    ] 10
+                                                    ] 60
                     ]
        , alignSep = "}{"
        , template = " %UnsafeStdinReader% }{ %default:Master% | %wlp4s0wi% | %bright% | %battery% | %date% "
