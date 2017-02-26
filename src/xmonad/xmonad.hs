@@ -18,8 +18,8 @@ main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
     , startupHook = setWMName "LG3D"
     , terminal = "urxvt"
 
-    , normalBorderColor = "#839496"
-    , focusedBorderColor = "#dc322f"
+    , normalBorderColor = "{{:theme/background}}"
+    , focusedBorderColor = "{{[:theme/color 1]}}"
     , borderWidth = 2
 
     -- topbar padding
@@ -60,11 +60,12 @@ main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
     ])
 
 menu m = intercalate " " [ m
-                         , "-fn 'xft:Droid Sans Mono Slashed for Powerline:pixelsize=18'"
-                         , "-nb '#002b36'"
-                         , "-nf '#657b83'"
-                         , "-sb '#859900'"
-                         , "-lh '32'"
+                         , "-fn '{{:theme/font-name}}:pixelsize={{:theme/font-size}}'"
+                         , "-nb '{{:theme/background}}'"
+                         , "-nf '{{:theme/foreground}}'"
+                         , "-sb '{{:theme/foreground}}'"
+                         , "-sf '{{:theme/background}}'"
+                         , "-lh '{{(if (> (:theme/dpi config) 96) 64 32)}}'"
                          ]
 
 action id = intercalate "" [ "<action=`xdotool key alt+"
@@ -74,7 +75,7 @@ action id = intercalate "" [ "<action=`xdotool key alt+"
                            , "</action>"
                            ]
 
-myPP = xmobarPP { ppCurrent = xmobarColor "#859900" ""
+myPP = xmobarPP { ppCurrent = xmobarColor "{{[:theme/color 4]}}" ""
                 , ppVisible = wrap "(" ")" . action
                 , ppHidden = action
                 , ppTitle = shorten 64

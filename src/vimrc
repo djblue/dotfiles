@@ -15,7 +15,6 @@ Plugin 'scrooloose/nerdtree'
 Plugin 'tpope/vim-fugitive'
 Plugin 'jelera/vim-javascript-syntax'
 Plugin 'tpope/vim-markdown'
-Plugin 'altercation/vim-colors-solarized'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 Plugin 'tpope/vim-surround'
@@ -25,15 +24,24 @@ Plugin 'ConradIrwin/vim-bracketed-paste'
 Plugin 'jpalardy/vim-slime'
 Plugin 'luochen1990/rainbow'
 Plugin 'vim-scripts/paredit.vim'
+Plugin 'tpope/vim-fireplace'
+Plugin 'Chiel92/vim-autoformat'
+Plugin 'venantius/vim-cljfmt'
+Plugin '{{:theme/vim-plugin}}'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 filetype plugin indent on    " required
+set omnifunc=syntaxcomplete#Complete
 
 let g:rainbow_active = 1
 let g:rainbow_conf = {
-\ 'ctermfgs': ['darkred', 'darkblue', 'gray', 'lightblue', 'darkmagenta']
-\ }
+      \ 'ctermfgs': ['darkred', 'darkblue', 'gray', 'lightblue', 'darkmagenta']
+      \ }
+
+let g:formatdef_my_custom_clojure = '"cljfmt"'
+let g:formatters_clojure = ['my_custom_clojure']
+au BufWrite *.clj :Autoformat
 
 let g:slime_target = "tmux"
 
@@ -57,7 +65,7 @@ set ttyfast
 set number
 
 " Highlight current line
-set cursorline 
+set cursorline
 
 " Set the text width option to '74'
 set tw=74 wrap linebreak
@@ -73,10 +81,10 @@ set visualbell
 " normal tabs for Makefile and go
 autocmd FileType make setlocal noexpandtab
 autocmd FileType go setlocal noexpandtab
- 
+
 " Set incremental search
 set incsearch
-set ignorecase 
+set ignorecase
 set smartcase
 " Highlighting
 set hlsearch
@@ -95,7 +103,7 @@ set spelllang=en_us
 
 " Disable swap files
 set noswapfile
-set nowritebackup 
+set nowritebackup
 " Disable backup copy
 set backupcopy=yes
 
@@ -103,8 +111,8 @@ set backupcopy=yes
 set t_Co=256
 syntax enable
 try
-  colorscheme solarized
-  set background=dark
+  colorscheme {{:theme/name}}
+  set background={{:theme/type}}
 catch /^Vim\%((\a\+)\)\=:E185/
   " ohh well
 endtry
@@ -187,7 +195,7 @@ noremap <leader>r <C-w>=
 nnoremap <F2> :set invpaste paste?<CR>
 set showmode
 
-" Toggle spelling 
+" Toggle spelling
 imap <Leader>s <C-o>:setlocal spell! spelllang=en_gb<CR>
 nmap <Leader>s :setlocal spell! spelllang=en_gb<CR>
 

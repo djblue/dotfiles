@@ -1,0 +1,73 @@
+!----------------------------------------------
+
+Xcursor.theme:      Vanilla-DMZ-AA
+
+!----------------------------------------------
+! Xft settings
+!----------------------------------------------
+
+Xft.dpi:            {{:theme/dpi}}
+Xft.antialias:      true
+Xft.rgba:           rgb
+Xft.hinting:        true
+Xft.hintstyle:      hintslight
+
+!----------------------------------------------
+! urxvt settings
+!----------------------------------------------
+!
+
+URxvt.perl-ext-common: selection-to-clipboard
+
+! Fonts
+urxvt*font:         xft:{{:theme/font-name}}:pixelsize={{:theme/font-size}}
+urxvt*boldFont:     xft:{{:theme/font-name}}:pixelsize={{:theme/font-size}}
+
+! Fix font space
+urxvt*letterSpace:  -1
+
+! Scrollbar
+urxvt*scrollStyle:  rxvt
+urxvt*scrollBar:    false
+
+! Transparency
+urxvt*transparent:  false
+!urxvt*shading:      15
+
+urxvt*cursorBlink:  true
+urxvt*allow_bold:   true
+
+*background:            {{:theme/background}}
+*foreground:            {{:theme/foreground}}
+
+!! black dark/light
+*color0:                {{[:theme/color 0]}}
+*color8:                {{[:theme/color 8]}}
+
+!! red dark/light
+*color1:                {{[:theme/color 1]}}
+*color9:                {{[:theme/color 9]}}
+
+!! green dark/light
+*color2:                {{[:theme/color 2]}}
+*color10:               {{[:theme/color 10]}}
+
+!! yellow dark/light
+*color3:                {{[:theme/color 3]}}
+*color11:               {{[:theme/color 11]}}
+
+!! blue dark/light
+*color4:                {{[:theme/color 4]}}
+*color12:               {{[:theme/color 12]}}
+
+!! magenta dark/light
+*color5:                {{[:theme/color 5]}}
+*color13:               {{[:theme/color 13]}}
+
+!! cyan dark/light
+*color6:                {{[:theme/color 6]}}
+*color14:               {{[:theme/color 14]}}
+
+!! white dark/light
+*color7:                {{[:theme/color 7]}}
+*color16:               {{[:theme/color 15]}}

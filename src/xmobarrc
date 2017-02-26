@@ -1,9 +1,10 @@
-Config { font = "xft:Droid Sans Mono Slashed for Powerline:pixelsize=18"
-       , bgColor = "#002b36"
-       , fgColor = "#657b83"
-       , position = TopSize C 100 32
-       , additionalFonts = ["xft:fontawesome:pixelsize=18"
-                           ]
+Config { font = "xft:{{:theme/font-name}}:pixelsize={{:theme/font-size}}"
+       , bgColor = "{{:theme/background}}"
+       , fgColor = "{{:theme/foreground}}"
+       , position = TopSize C 100 {{(if (> (:theme/dpi config) 96) 64 32)}}
+       , additionalFonts = [-- http://fontawesome.io/cheatsheet/
+       "xft:Font Awesome 5 Free:style=Solid:pixelsize={{:theme/font-size}}"
+       ]
        , allDesktops = True
        , commands = [ Run UnsafeStdinReader
                     , Run Memory ["-t", "Mem: <usedratio>%" ] 60
@@ -11,9 +12,9 @@ Config { font = "xft:Droid Sans Mono Slashed for Powerline:pixelsize=18"
                     , Run Battery ["--template", "<acstatus> <left>"
                                   , "--Low"    , "10"
                                   , "--High"   , "80"
-                                  , "--low"    , "#dc322f" -- red
-                                  , "--normal" , "#268bd2" -- blue
-                                  , "--high"   , "#859900" -- green
+                                  , "--low"    , "{{[:theme/color 1]}}" -- red
+                                  , "--normal" , "{{[:theme/color 4]}}" -- blue
+                                  , "--high"   , "{{[:theme/color 2]}}" -- green
 
                                   , "--" -- battery specific options
                                   -- discharging status
@@ -28,13 +29,22 @@ Config { font = "xft:Droid Sans Mono Slashed for Powerline:pixelsize=18"
                                      , "-D", "gmux_backlight"
                                      ] 60
                     , Run Wireless "wlp4s0" [ "-t", "<fn=1>\61931</fn> <essid> <quality>"
-                                            , "--low"    , "#dc322f" -- red
-                                            , "--normal" , "#268bd2" -- blue
-                                            , "--high"   , "#859900" -- green
+                                            , "--low"    , "{{[:theme/color 1]}}" -- red
+                                            , "--normal" , "{{[:theme/color 4]}}" -- blue
+                                            , "--high"   , "{{[:theme/color 2]}}" -- green
                                             ] 60
-                    , Run Volume "default" "Master" ["-t", "<fn=1>\61480</fn> <volume>"
-                                                    ] 60
                     ]
        , alignSep = "}{"
-       , template = " %UnsafeStdinReader% }{ %default:Master% | %wlp4s0wi% | %bright% | %battery% | %date% "
+       , template = "{{
+(str
+  " %UnsafeStdinReader% }{ "
+  (->> [[:system/has-wireless?  "%wlp4s0wi%"]
+        [:system/has-backlight? "%bright%"]
+        [:system/has-battery?   "%battery%"]
+        [:system/has-sound?     "%date%"]]
+    (filter (fn [[k]] (k config)))
+    (map second)
+    (clojure.string/join " | "))
+  " ")
+}}"
        }
