@@ -20,7 +20,7 @@ main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
 
     , normalBorderColor = "{{:theme/background}}"
     , focusedBorderColor = "{{[:theme/color 1]}}"
-    , borderWidth = 2
+    , borderWidth = {{(if (> (:theme/dpi config) 96) 4 2)}}
 
     -- topbar padding
     , manageHook = manageDocks <+> manageHook baseConfig
