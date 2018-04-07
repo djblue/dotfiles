@@ -8,8 +8,7 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [hawk.core :as hawk]
-            [org.httpkit.server :as http]
-            [me.raynes.fs :as fs])
+            [org.httpkit.server :as http])
   (:import java.util.Base64))
 
 (defn cli-options [{:keys [config/themes config/profiles]}]
@@ -137,17 +136,15 @@
           (list? expr)    (eval
                            `(let [~'config ~config] ~expr))))))))
 
-(defn rename [path]
-  (let [[_ & relative] (fs/split path)
-        [f & r] relative]
-    (str/join "/" (cons (str "." f) r))))
+(def cwd (.toPath (.getAbsoluteFile (io/file "src"))))
+
+(defn rename [file]
+  (str "." (.toString (.relativize cwd (.toPath (.getAbsoluteFile file))))))
 
 (defn dot [config]
   (fn [file]
-    (let [path (.getPath file)
-          contents (slurp file)]
-      {:path (rename path)
-       :contents (render-string config contents)})))
+    {:path (rename file)
+     :contents (render-string config (slurp file))}))
 
 (defn encode [s]
   (.encodeToString (Base64/getEncoder) (.getBytes s)))
