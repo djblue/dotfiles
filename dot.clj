@@ -3,8 +3,6 @@
 (ns dot.core
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.nrepl.server :as nrepl]
-            [clojure.java.shell :as shell]
-            [clojure.pprint :as pp]
             [clojure.string :as str]
             [clojure.java.io :as io]
             [hawk.core :as hawk]
@@ -12,15 +10,7 @@
   (:import java.util.Base64))
 
 (defn cli-options [{:keys [config/themes config/profiles]}]
-  [["-c" "--color THEME" "the color theme to use"
-    :default :nord
-    :default-desc "nord"
-    :parse-fn keyword
-    :validate [#(% themes) (str "theme must be one of " (keys themes))]]
-   ["-p" "--profiles PROFILE" "comma separated list of profiles to use"
-    :parse-fn #(map keyword (str/split % #","))
-    :validate [#(% profiles) (str "profile must be one of " (keys profiles))]]
-   ["-s" "--script" "only output script"]
+  [["-s" "--script" "only output script"]
    ["-a" "--app" "serve dot files over http app"]
    ["-h" "--help" "output usage information"]])
 
@@ -118,7 +108,7 @@
                    "#fdf6e3"]}}})
 
 (defn get-config [db theme & profiles]
-  (->> (cons :default profiles)
+  (->> profiles
        (map #(get-in db [:config/profiles %]))
        (cons (get-in db [:config/themes theme]))
        (apply merge)))
@@ -141,19 +131,15 @@
 (defn rename [file]
   (str "." (.toString (.relativize cwd (.toPath (.getAbsoluteFile file))))))
 
-(defn dot [config]
-  (fn [file]
-    {:path (rename file)
-     :contents (render-string config (slurp file))}))
+(defn dot [config file]
+  {:path (rename file)
+   :contents (render-string config (slurp file))})
 
 (defn encode [s]
   (.encodeToString (Base64/getEncoder) (.getBytes s)))
 
-(defn exec [script]
-  (shell/sh "/usr/bin/bash" "-c" script))
-
 (defn escape [s]
-  (str "\"$(/usr/bin/echo '" (encode s) "' | /usr/bin/base64 -d)\""))
+  (str "\"$(/usr/bin/base64 -d <<< '" (encode s) "')\""))
 
 (defn echo [& messages]
   (str "/usr/bin/echo " (str/join " " (map escape messages)) ";"))
@@ -166,28 +152,44 @@
        "/usr/bin/echo " (escape content) " > " path ";"
        "/usr/bin/echo wrote " path ";"))
 
+(defn if-host [host code]
+  (str "if [[ $(hostname) == " (name host) " ]]; then " code " fi"))
+
 (defn clone [url path]
   (str
-   "if [ ! -d " path " ]; then /usr/bin/git clone " url " " path "; fi;"))
+   "if [ ! -d " path " ]; then /usr/bin/git clone " url " " path "; fi"))
 
-(defn write-dot [file]
-  (let [{:keys [path contents]} ((dot (get-config db :nord)) file)]
-    (write (str "$HOME/" path) contents)))
+(def machines
+  [{:host :red-machine
+    :config/profiles [:default]
+    :config/theme :nord}
+   {:host :archy
+    :config/profiles [:default]
+    :config/theme :nord}
+   {:host :osx
+    :config/profiles [:default :laptop :hidpi]
+    :config/theme :nord}])
 
-(defn emit [file]
-  (println (write-dot file)))
-
-(defn dots-script []
+(defn dots-script [files]
   (str
    "set -e;"
    (clone
     "https://github.com/VundleVim/Vundle.vim.git"
     "$HOME/.vim/bundle/Vundle.vim")
-   (with-out-str
-     (->> (file-seq (io/file "src/"))
-          (filter #(.isFile %))
-          (map emit)
-          doall))))
+   \newline
+   (->> machines
+        (map (fn [{:keys [host config/theme config/profiles]}]
+               [host (apply get-config (concat [db theme] profiles))]))
+        (map (fn [[host config]]
+               [host (->> files
+                          (map (fn [file] (dot config file)))
+                          (map (fn [{:keys [path contents]}]
+                                 (write (str "$HOME/" path) contents)))
+                          (str/join \newline))]))
+        (map (fn [[host script]]
+               (if-host host (str (echo (str "==> detected " (name host)))
+                                  script))))
+        (str/join \newline))))
 
 (defn exit [code & msg]
   (apply println msg)
@@ -196,18 +198,21 @@
 (defn edit-dots []
   (hawk/watch! [{:paths ["src"]
                  :filter hawk/file?
-                 :handler #(emit (:file %2))}])
+                 :handler #(println (dots-script [(:file %2)]))}])
   (let [runtime (Runtime/getRuntime)
         p (.start (ProcessBuilder. ["gvim" "-f" "/home/chris/repos/dotfiles/dot.clj"]))]
     (.addShutdownHook runtime (Thread. #(.destroy p)))
     (nrepl/start-server :port 7888)
     (exit (.waitFor p))))
 
+(defn get-sources []
+  (->> "src/" io/file file-seq (filter #(.isFile %))))
+
 (defn app [req]
   (println req)
   {:statue 200
    :headers {"Content-Type" "text/plain"}
-   :body (dots-script)})
+   :body (dots-script (get-sources))})
 
 (defn main [& args]
   (let [{:keys [options arguments errors summary]}
@@ -215,7 +220,7 @@
     (cond
       (:help options)     (exit 0 (help summary db))
       errors (exit 1      (str (first errors) "\nSee \"dot --help\""))
-      (:script options)   (print (dots-script))
+      (:script options)   (print (dots-script (get-sources)))
       (:app options)      (http/run-server app {:host "0.0.0.0" :port 8080})
       :else               (edit-dots))))
 
