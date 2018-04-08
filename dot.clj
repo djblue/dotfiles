@@ -1,5 +1,4 @@
 ;#!/usr/bin/env clojure
-; vim: set ft=clojure:
 (ns dot.core
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.nrepl.server :as nrepl]
@@ -8,34 +7,6 @@
             [hawk.core :as hawk]
             [org.httpkit.server :as http])
   (:import java.util.Base64))
-
-(defn cli-options [{:keys [config/themes config/profiles]}]
-  [["-s" "--script" "only output script"]
-   ["-h" "--help" "output usage information"]])
-
-(defn help [options {:keys [config/themes config/profiles]}]
-  (->> ["Edit my dotfiles."
-        ""
-        "Usage: dot [options]"
-        ""
-        "Options:"
-        ""
-        options
-        ""
-        "Profiles:"
-        ""
-        (->> (keys profiles)
-             (map name)
-             (map #(str "  " %))
-             (str/join \newline))
-        ""
-        "Themes:"
-        ""
-        (->> (map second themes)
-             (map #(str "  " (:theme/name %) " - " (:theme/url %)))
-             (str/join \newline))
-        ""]
-       (str/join \newline)))
 
 (def db
   {:config/restarts
@@ -209,19 +180,36 @@
                  :filter hawk/file?
                  :handler #(println (dots-script [(:file %2)]))}])
   (let [runtime (Runtime/getRuntime)
-        p (.start (ProcessBuilder. ["gvim" "-f" "/home/chris/repos/dotfiles/dot.clj"]))]
+        p (.start (ProcessBuilder.
+                   ["gvim" "-f" "/home/chris/repos/dotfiles/dot.clj"]))]
     (.addShutdownHook runtime (Thread. #(.destroy p)))
     (nrepl/start-server :port 7888)
     (http/run-server app {:host "0.0.0.0" :port 8080})
     (exit (.waitFor p))))
 
+(defn cli-options [{:keys [config/themes config/profiles]}]
+  [["-s" "--script" "only output script"]
+   ["-h" "--help" "output usage information"]])
+
+(defn help [options]
+  (->> ["Edit my dotfiles."
+        ""
+        "Usage: dot [options]"
+        ""
+        "Options:"
+        ""
+        options
+        ""]
+       (str/join \newline)))
+
 (defn main [& args]
   (let [{:keys [options arguments errors summary]}
         (parse-opts args (cli-options db))]
     (cond
-      (:help options)     (exit 0 (help summary db))
+      (:help options)     (exit 0 (help summary))
       errors (exit 1      (str (first errors) "\nSee \"dot --help\""))
       (:script options)   (print (dots-script (get-sources)))
       :else               (edit-dots))))
 
 (apply main *command-line-args*)
+; vim: set ft=clojure:
