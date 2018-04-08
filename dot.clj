@@ -11,7 +11,6 @@
 
 (defn cli-options [{:keys [config/themes config/profiles]}]
   [["-s" "--script" "only output script"]
-   ["-a" "--app" "serve dot files over http app"]
    ["-h" "--help" "output usage information"]])
 
 (defn help [options {:keys [config/themes config/profiles]}]
@@ -196,16 +195,6 @@
   (apply println msg)
   (System/exit code))
 
-(defn edit-dots []
-  (hawk/watch! [{:paths ["src"]
-                 :filter hawk/file?
-                 :handler #(println (dots-script [(:file %2)]))}])
-  (let [runtime (Runtime/getRuntime)
-        p (.start (ProcessBuilder. ["gvim" "-f" "/home/chris/repos/dotfiles/dot.clj"]))]
-    (.addShutdownHook runtime (Thread. #(.destroy p)))
-    (nrepl/start-server :port 7888)
-    (exit (.waitFor p))))
-
 (defn get-sources []
   (->> "src/" io/file file-seq (filter #(.isFile %))))
 
@@ -215,6 +204,17 @@
    :headers {"Content-Type" "text/plain"}
    :body (dots-script (get-sources))})
 
+(defn edit-dots []
+  (hawk/watch! [{:paths ["src"]
+                 :filter hawk/file?
+                 :handler #(println (dots-script [(:file %2)]))}])
+  (let [runtime (Runtime/getRuntime)
+        p (.start (ProcessBuilder. ["gvim" "-f" "/home/chris/repos/dotfiles/dot.clj"]))]
+    (.addShutdownHook runtime (Thread. #(.destroy p)))
+    (nrepl/start-server :port 7888)
+    (http/run-server app {:host "0.0.0.0" :port 8080})
+    (exit (.waitFor p))))
+
 (defn main [& args]
   (let [{:keys [options arguments errors summary]}
         (parse-opts args (cli-options db))]
@@ -222,7 +222,6 @@
       (:help options)     (exit 0 (help summary db))
       errors (exit 1      (str (first errors) "\nSee \"dot --help\""))
       (:script options)   (print (dots-script (get-sources)))
-      (:app options)      (http/run-server app {:host "0.0.0.0" :port 8080})
       :else               (edit-dots))))
 
 (apply main *command-line-args*)
