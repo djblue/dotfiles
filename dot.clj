@@ -40,12 +40,10 @@
 
 (def db
   {:config/restarts
-   {#{"xmonad.hs" "xmobarrc"}
-    ["xmonad --recompile" "xmonad --restart"]
-    #{"Xdefaults"}
-    ["xrdb -merge ~/.Xdefaults"]
-    #{"vimrc"}
-    ["vim +PluginInstall +qall"]}
+   {".xmonad/xmonad.hs" ["xmonad --recompile;" "xmonad --restart;"]
+    ".xmobarrc" ["xmonad --restart;"]
+    ".Xdefaults" ["xrdb -merge ~/.Xdefaults;"]
+    ".vimrc" ["echo | vim +PlugInstall +qall;"]}
    :config/profiles
    {:default
     {:theme/dpi 96
@@ -184,7 +182,10 @@
                [host (->> files
                           (map (fn [file] (dot config file)))
                           (map (fn [{:keys [path contents]}]
-                                 (write (str "$HOME/" path) contents)))
+                                 (str
+                                  (write (str "$HOME/" path) contents)
+                                  (str/join ""
+                                            (get-in db [:config/restarts path] [])))))
                           (str/join \newline))]))
         (map (fn [[host script]]
                (if-host host (str (echo (str "==> detected " (name host)))
