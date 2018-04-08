@@ -25,7 +25,6 @@ Plugin 'jpalardy/vim-slime'
 Plugin 'luochen1990/rainbow'
 Plugin 'vim-scripts/paredit.vim'
 Plugin 'tpope/vim-fireplace'
-Plugin 'Chiel92/vim-autoformat'
 Plugin 'venantius/vim-cljfmt'
 Plugin '{{:theme/vim-plugin}}'
 
@@ -41,7 +40,7 @@ let g:rainbow_conf = {
 
 let g:formatdef_my_custom_clojure = '"cljfmt"'
 let g:formatters_clojure = ['my_custom_clojure']
-au BufWrite *.clj :Autoformat
+au BufWrite *.clj :Cljfmt
 
 let g:slime_target = "tmux"
 
