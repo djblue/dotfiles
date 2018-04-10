@@ -42,3 +42,4 @@ HISTSIZE=5000
 SAVEHIST=10000
 
 source ~/.profile
+eval "$RUN"

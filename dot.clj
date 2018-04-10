@@ -200,18 +200,24 @@
 (defn get-sources []
   (->> "src/" io/file file-seq (filter #(.isFile %))))
 
+(def chans (atom #{}))
+
 (defn app [req]
-  {:statue 200
-   :headers {"Content-Type" "text/plain"}
-   :body (bash (dots-script (get-sources)))})
+  (if (= (:uri req) "/stream")
+    (http/with-channel req ch
+      (http/on-close ch (fn [_]  (swap! chans disj ch)))
+      (swap! chans conj ch))
+    {:statue 200
+     :headers {"Content-Type" "text/plain"}
+     :body (bash (dots-script (get-sources)))}))
 
 (defn edit-dots []
   (hawk/watch! [{:paths ["src"]
                  :filter hawk/file?
-                 :handler #(println (dots-script [(:file %2)]))}])
+                 :handler #(doseq [ch @chans]
+                             (http/send! ch (bash (dots-script [(:file %2)])) false))}])
   (let [runtime (Runtime/getRuntime)
-        p (.start (ProcessBuilder.
-                   ["gvim" "-f" "/home/chris/repos/dotfiles/dot.clj"]))]
+        p (.start (.inheritIO (ProcessBuilder.  ["vim" "dot.clj"])))]
     (.addShutdownHook runtime (Thread. #(.destroy p)))
     (nrepl/start-server :port 7888)
     (http/run-server #(app %)  {:host "0.0.0.0" :port 8080})
