@@ -1,5 +1,4 @@
-;#!/usr/bin/env clojure
-(ns dot.core
+(ns dots.core
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.nrepl.server :as nrepl]
             [clojure.string :as str]
@@ -114,6 +113,7 @@
 
 (defn dot [config file]
   {:path (rename file)
+   :exec (.canExecute file)
    :contents (render-string config (slurp file))})
 
 (def machines
@@ -136,10 +136,11 @@
 (defn escape [s]
   [:eval [:pipe [:echo (encode s)] [:base64 "--decode"]]])
 
-(defn write [path content]
+(defn write [path content exec?]
   [:do
    [:mkdir "-p" [:eval [:dirname path]]]
    [:redirect [:echo (escape content)] path]
+   (if exec? [:chmod "+x" path])
    [:echo "' -> wrote'" path]])
 
 (defn dots-script [files]
@@ -155,12 +156,10 @@
                [host
                 (->> files
                      (map (fn [file] (dot config file)))
-                     (map (fn [{:keys [path contents]}]
-                            (if-let [restarts (get-in db [:config/restarts path])]
-                              [:do
-                               (write (str "$HOME/" path) contents)
-                               restarts]
-                              (write (str "$HOME/" path) contents)))))]))
+                     (map (fn [{:keys [path contents exec]}]
+                            [:do
+                             (write (str "$HOME/" path) contents exec)
+                             (get-in db [:config/restarts path])])))]))
         (map (fn [[host script]]
                [:if [:equals [:eval [:hostname]] (name host)]
                 [:do
@@ -175,7 +174,7 @@
     (or (vector? script) (seq? script))
     (let [[op & args] script]
       (case op
-        :do (str/join "\n" (map bash args))
+        :do (str/join "\n" (map bash (filter some? args)))
         :if (str "if [[ " (bash (first args)) " ]]; then\n"
                  (bash (second args))
                  "\nfi")
@@ -216,7 +215,7 @@
                  :handler #(doseq [ch @chans]
                              (http/send! ch (bash (dots-script [(:file %2)])) false))}])
   (let [runtime (Runtime/getRuntime)
-        p (.start (.inheritIO (ProcessBuilder.  ["vim" "dot.clj"])))]
+        p (.start (.inheritIO (ProcessBuilder.  ["vim" "dots.clj"])))]
     (.addShutdownHook runtime (Thread. #(.destroy p)))
     (nrepl/start-server :port 7888)
     (http/run-server #(app %) {:host "0.0.0.0" :port 8080})
@@ -247,4 +246,3 @@
       :else               (edit-dots))))
 
 (apply main *command-line-args*)
-; vim: set ft=clojure:
