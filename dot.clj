@@ -10,10 +10,23 @@
 
 (def db
   {:config/restarts
-   {".xmonad/xmonad.hs" ["xmonad --recompile;" "xmonad --restart;"]
-    ".xmobarrc" ["xmonad --restart;"]
-    ".Xdefaults" ["xrdb -merge ~/.Xdefaults;"]
-    ".vimrc" ["echo | vim +PlugInstall +qall;"]}
+   {".xmonad/xmonad.hs"
+    [:do
+     [:xmonad "--recompile"]
+     [:xmonad "--restart"]
+     [:sleep 0.1]]
+    ".xmobarrc"
+    [:do
+     [:xmonad "--restart"]
+     [:sleep 0.1]]
+    ".Xdefaults"
+    [:xrdb "-merge" " ~/.Xdefaults"]
+    ".vimrc"
+    [:pipe
+     [:echo]
+     [:redirect
+      [:vim "+PlugInstall" "+qall"]
+      "/dev/null"]]}
    :config/profiles
    {:default
     {:theme/dpi 96
@@ -106,27 +119,6 @@
 (defn encode [s]
   (.encodeToString (Base64/getEncoder) (.getBytes s)))
 
-(defn escape [s]
-  (str "\"$(/usr/bin/base64 -d <<< '" (encode s) "')\""))
-
-(defn echo [& messages]
-  (str "/usr/bin/echo " (str/join " " (map escape messages)) ";"))
-
-(defn notify [title body]
-  (str "/usr/bin/notify-send " (escape title) " " (escape body) ";"))
-
-(defn write [path content]
-  (str "/usr/bin/mkdir -p \"$(dirname " path ")\";"
-       "/usr/bin/echo " (escape content) " > " path ";"
-       "/usr/bin/echo wrote " path ";"))
-
-(defn if-host [host code]
-  (str "if [[ $(hostname) == " (name host) " ]]; then " code " fi"))
-
-(defn clone [url path]
-  (str
-   "if [ ! -d " path " ]; then /usr/bin/git clone " url " " path "; fi"))
-
 (def machines
   [{:host :red-machine
     :config/profiles [:default]
@@ -138,29 +130,68 @@
     :config/profiles [:default :laptop :hidpi]
     :config/theme :nord}])
 
+(defn git-clone [url path]
+  [:if [:not [:dir path]] [:git "clone" url path]])
+
+(defn escape [s]
+  [:eval
+   [:base64 "-d" "<<<" (str "'" (encode s) "'")]])
+
+(defn write [path content]
+  [:do
+   [:mkdir "-p" [:eval [:dirname path]]]
+   [:redirect [:echo (escape content)] path]
+   [:echo "' -> wrote'" path]])
+
 (defn dots-script [files]
-  (str
-   "set -e;"
-   (clone
+  [:do
+   [:set "-e"]
+   (git-clone
     "https://github.com/VundleVim/Vundle.vim.git"
     "$HOME/.vim/bundle/Vundle.vim")
-   \newline
    (->> machines
         (map (fn [{:keys [host config/theme config/profiles]}]
                [host (apply get-config (concat [db theme] profiles))]))
         (map (fn [[host config]]
-               [host (->> files
-                          (map (fn [file] (dot config file)))
-                          (map (fn [{:keys [path contents]}]
-                                 (str
-                                  (write (str "$HOME/" path) contents)
-                                  (str/join ""
-                                            (get-in db [:config/restarts path] [])))))
-                          (str/join \newline))]))
+               [host
+                (->> files
+                     (map (fn [file] (dot config file)))
+                     (map (fn [{:keys [path contents]}]
+                            (if-let [restarts (get-in db [:config/restarts path])]
+                              [:do
+                               (write (str "$HOME/" path) contents)
+                               restarts]
+                              (write (str "$HOME/" path) contents)))))]))
         (map (fn [[host script]]
-               (if-host host (str (echo (str "==> detected " (name host)))
-                                  script))))
-        (str/join \newline))))
+               [:if [:equals [:eval [:hostname]] (name host)]
+                [:do
+                 [:echo (str "'==> detected '" (name host))]
+                 (cons :do script)]]))
+        (cons :do))
+   [:echo "'==> successfully installed dotfiles'"]])
+
+(defn bash [script]
+  (cond
+    (string? script) script
+    (or (vector? script) (seq? script))
+    (let [[op & args] script]
+      (case op
+        :do (str/join "\n" (map bash args))
+        :if (str "if [[ " (bash (first args)) " ]]; then\n"
+                 (bash (second args))
+                 "\nfi")
+        :not (str "! " (bash (first args)))
+        :dir (str "-d " (first args))
+        :eval (str "\"$(" (bash (first args)) ")\"")
+        :pipe (str/join " | " (map bash args))
+        :equals (str (bash (first args))
+                     " == "
+                     (bash (second args)))
+        :redirect (str (bash (first args))
+                       " > "
+                       (bash (second args)))
+        (str (name op) " " (str/join " " (map bash args)))))
+    :else script))
 
 (defn exit [code & msg]
   (apply println msg)
@@ -170,10 +201,9 @@
   (->> "src/" io/file file-seq (filter #(.isFile %))))
 
 (defn app [req]
-  (println req)
   {:statue 200
    :headers {"Content-Type" "text/plain"}
-   :body (dots-script (get-sources))})
+   :body (bash (dots-script (get-sources)))})
 
 (defn edit-dots []
   (hawk/watch! [{:paths ["src"]
@@ -184,7 +214,7 @@
                    ["gvim" "-f" "/home/chris/repos/dotfiles/dot.clj"]))]
     (.addShutdownHook runtime (Thread. #(.destroy p)))
     (nrepl/start-server :port 7888)
-    (http/run-server app {:host "0.0.0.0" :port 8080})
+    (http/run-server #(app %)  {:host "0.0.0.0" :port 8080})
     (exit (.waitFor p))))
 
 (defn cli-options [{:keys [config/themes config/profiles]}]
@@ -208,7 +238,7 @@
     (cond
       (:help options)     (exit 0 (help summary))
       errors (exit 1      (str (first errors) "\nSee \"dot --help\""))
-      (:script options)   (print (dots-script (get-sources)))
+      (:script options)   (print (bash (dots-script (get-sources))))
       :else               (edit-dots))))
 
 (apply main *command-line-args*)
