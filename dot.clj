@@ -20,7 +20,7 @@
      [:xmonad "--restart"]
      [:sleep 0.1]]
     ".Xdefaults"
-    [:xrdb "-merge" " ~/.Xdefaults"]
+    [:xrdb "-merge" "~/.Xdefaults"]
     ".vimrc"
     [:pipe
      [:echo]
@@ -116,9 +116,6 @@
   {:path (rename file)
    :contents (render-string config (slurp file))})
 
-(defn encode [s]
-  (.encodeToString (Base64/getEncoder) (.getBytes s)))
-
 (def machines
   [{:host :red-machine
     :config/profiles [:default]
@@ -133,9 +130,11 @@
 (defn git-clone [url path]
   [:if [:not [:dir path]] [:git "clone" url path]])
 
+(defn encode [s]
+  (.encodeToString (Base64/getEncoder) (.getBytes s)))
+
 (defn escape [s]
-  [:eval
-   [:base64 "-d" "<<<" (str "'" (encode s) "'")]])
+  [:eval [:pipe [:echo (encode s)] [:base64 "--decode"]]])
 
 (defn write [path content]
   [:do
@@ -220,10 +219,10 @@
         p (.start (.inheritIO (ProcessBuilder.  ["vim" "dot.clj"])))]
     (.addShutdownHook runtime (Thread. #(.destroy p)))
     (nrepl/start-server :port 7888)
-    (http/run-server #(app %)  {:host "0.0.0.0" :port 8080})
+    (http/run-server #(app %) {:host "0.0.0.0" :port 8080})
     (exit (.waitFor p))))
 
-(defn cli-options [{:keys [config/themes config/profiles]}]
+(def cli-options
   [["-s" "--script" "only output script"]
    ["-h" "--help" "output usage information"]])
 
@@ -240,7 +239,7 @@
 
 (defn main [& args]
   (let [{:keys [options arguments errors summary]}
-        (parse-opts args (cli-options db))]
+        (parse-opts args cli-options)]
     (cond
       (:help options)     (exit 0 (help summary))
       errors (exit 1      (str (first errors) "\nSee \"dot --help\""))
