@@ -210,7 +210,7 @@
   (hawk/watch! [{:paths ["src"]
                  :filter hawk/file?
                  :handler #(doseq [ch @chans]
-                             (http/send! ch (bash (dots-script [(:file %2)])) false))}])
+                             (http/send! ch (str (bash (dots-script [(:file %2)])) "\n") false))}])
   (let [runtime (Runtime/getRuntime)
         p (.start (.inheritIO (ProcessBuilder.  ["vim" "dots.clj"])))]
     (.addShutdownHook runtime (Thread. #(.destroy p)))
