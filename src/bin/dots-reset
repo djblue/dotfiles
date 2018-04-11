@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+curl -sL https://git.io/vxQ4g | bash
+notify-send 'dots' 'successfully reset dotfiles'
