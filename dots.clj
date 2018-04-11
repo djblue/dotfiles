@@ -172,23 +172,19 @@
   (cond
     (string? script) script
     (or (vector? script) (seq? script))
-    (let [[op & args] script]
+    (let [[op & args] script
+          args (map bash (filter some? args))
+          [arg1 arg2] args]
       (case op
-        :do (str/join "\n" (map bash (filter some? args)))
-        :if (str "if [[ " (bash (first args)) " ]]; then\n"
-                 (bash (second args))
-                 "\nfi")
-        :not (str "! " (bash (first args)))
-        :dir (str "-d " (first args))
-        :eval (str "\"$(" (bash (first args)) ")\"")
-        :pipe (str/join " | " (map bash args))
-        :equals (str (bash (first args))
-                     " == "
-                     (bash (second args)))
-        :redirect (str (bash (first args))
-                       " > "
-                       (bash (second args)))
-        (str (name op) " " (str/join " " (map bash args)))))
+        :do         (str/join "\n" args)
+        :if         (str "if [[ " arg1 " ]]; then\n" arg2 "\nfi")
+        :not        (str "! " arg1)
+        :dir        (str "-d " arg1)
+        :eval       (str "\"$(" arg1 ")\"")
+        :pipe       (str/join " | " args)
+        :equals     (str arg1 " == " arg2)
+        :redirect   (str arg1 " > " arg2)
+        (str (name op) " " (str/join " " args))))
     :else script))
 
 (defn exit [code & msg]
