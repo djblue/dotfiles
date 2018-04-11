@@ -31,7 +31,8 @@
     {:theme/dpi 96
      :theme/font-size 18
      :system/has-sound? true
-     :theme/font-name "Inconsolata for Powerline"}
+     :theme/font-name "Inconsolata"
+     :theme/font-alt "Inconsolata for Powerline"}
     :hidpi
     {:theme/dpi 196
      :theme/font-size 38}

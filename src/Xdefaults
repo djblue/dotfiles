@@ -20,7 +20,8 @@ Xft.hintstyle:      hintslight
 URxvt.perl-ext-common: selection-to-clipboard
 
 ! Fonts
-urxvt*font:         xft:{{:theme/font-name}}:pixelsize={{:theme/font-size}}
+urxvt*font:         xft:{{:theme/font-name}}:pixelsize={{:theme/font-size}}, \
+                    xft:{{:theme/font-alt}}:pixelsize={{:theme/font-size}}
 urxvt*boldFont:     xft:{{:theme/font-name}}:pixelsize={{:theme/font-size}}
 
 ! Fix font space
