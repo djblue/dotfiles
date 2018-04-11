@@ -213,7 +213,7 @@
   (let [runtime (Runtime/getRuntime)
         p (.start (.inheritIO (ProcessBuilder.  ["vim" "dots.clj"])))]
     (.addShutdownHook runtime (Thread. #(.destroy p)))
-    (nrepl/start-server :port 7888)
+    (->> (nrepl/start-server) :port (spit ".nrepl-port"))
     (http/run-server #(app %) {:host "0.0.0.0" :port 8080})
     (exit (.waitFor p))))
 
