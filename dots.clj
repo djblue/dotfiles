@@ -238,7 +238,7 @@
         (parse-opts args cli-options)]
     (cond
       (:help options)     (exit 0 (help summary))
-      errors (exit 1      (str (first errors) "\nSee \"dot --help\""))
+      errors              (exit 1 (str (first errors) "\nSee \"dot --help\""))
       (:script options)   (print (bash (dots-script (get-sources))))
       :else               (edit-dots))))
 
