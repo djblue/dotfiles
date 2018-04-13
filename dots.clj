@@ -4,7 +4,8 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [hawk.core :as hawk]
-            [org.httpkit.server :as http])
+            [org.httpkit.server :as http]
+            [digest :refer [sha-1]])
   (:import java.util.Base64))
 
 (def db
@@ -88,7 +89,7 @@
                    "#93a1a1"
                    "#fdf6e3"]}}})
 
-(defn get-config [db theme & profiles]
+(defn get-config [db theme profiles]
   (->> profiles
        (map #(get-in db [:config/profiles %]))
        (cons (get-in db [:config/themes theme]))
@@ -107,16 +108,6 @@
           (list? expr)    (eval
                            `(let [~'config ~config] ~expr))))))))
 
-(def cwd (.toPath (.getAbsoluteFile (io/file "src"))))
-
-(defn rename [file]
-  (str "." (.toString (.relativize cwd (.toPath (.getAbsoluteFile file))))))
-
-(defn dot [config file]
-  {:path (rename file)
-   :exec (.canExecute file)
-   :contents (render-string config (slurp file))})
-
 (def machines
   [{:host :red-machine
     :config/profiles [:default]
@@ -134,15 +125,46 @@
 (defn encode [s]
   (.encodeToString (Base64/getEncoder) (.getBytes s)))
 
-(defn escape [s]
-  [:eval [:pipe [:echo (encode s)] [:base64 "--decode"]]])
+(def cwd (.toPath (.getAbsoluteFile (io/file "src"))))
 
-(defn write [path content exec?]
-  [:do
-   [:mkdir "-p" [:eval [:dirname path]]]
-   [:redirect [:echo (escape content)] path]
-   (if exec? [:chmod "+x" path])
-   [:echo "' -> wrote'" path]])
+(defn rename [file]
+  (str "." (.toString (.relativize cwd (.toPath (.getAbsoluteFile file))))))
+
+(defn install-file [config file]
+  (let [contents (render-string config (slurp file))
+        sha-1 (sha-1 contents)
+        path  (rename file)
+        restarts (get-in db [:config/restarts path])
+        path (str "$HOME/" path)
+        exec? (.canExecute file)]
+    [:do
+     [:mkdir "-p" [:eval [:dirname path]]]
+     [:touch path]
+     [:if [:not
+           [:equals [:eval
+                     [:pipe
+                      [:sha1sum path]
+                      [:cut "-d" "' '" "-f" 1]]] sha-1]]
+      [:do
+       [:redirect [:pipe
+                   [:echo "-n" (encode contents)]
+                   [:base64 "--decode"]] path]
+       (if exec? [:chmod "+x" path])
+       [:echo "'  -> wrote'" path]
+       (if restarts
+         [:do
+          [:echo "'  -> performaing restarts'"]
+          restarts])]
+      [:echo "'  -> skipping'" path]]]))
+
+(defn install-host [files machine]
+  (let [{:keys [host config/theme config/profiles]} machine
+        config (get-config db theme profiles)
+        install-files (map #(install-file config %) files)]
+    [:if [:equals [:eval [:hostname]] (name host)]
+     [:do
+      [:echo (str "'==> detected '" (name host))]
+      (cons :do install-files)]]))
 
 (defn dots-script [files]
   [:do
@@ -150,23 +172,7 @@
    (git-clone
     "https://github.com/VundleVim/Vundle.vim.git"
     "$HOME/.vim/bundle/Vundle.vim")
-   (->> machines
-        (map (fn [{:keys [host config/theme config/profiles]}]
-               [host (apply get-config (concat [db theme] profiles))]))
-        (map (fn [[host config]]
-               [host
-                (->> files
-                     (map (fn [file] (dot config file)))
-                     (map (fn [{:keys [path contents exec]}]
-                            [:do
-                             (write (str "$HOME/" path) contents exec)
-                             (get-in db [:config/restarts path])])))]))
-        (map (fn [[host script]]
-               [:if [:equals [:eval [:hostname]] (name host)]
-                [:do
-                 [:echo (str "'==> detected '" (name host))]
-                 (cons :do script)]]))
-        (cons :do))
+   (cons :do (map #(install-host files %) machines))
    [:echo "'==> successfully installed dotfiles'"]])
 
 (defn bash [script]
@@ -175,10 +181,13 @@
     (or (vector? script) (seq? script))
     (let [[op & args] script
           args (map bash (filter some? args))
-          [arg1 arg2] args]
+          [arg1 arg2 arg3] args]
       (case op
         :do         (str/join "\n" args)
-        :if         (str "if [[ " arg1 " ]]; then\n" arg2 "\nfi")
+        :if         (str "if [[ " arg1 " ]]; then\n"
+                         arg2
+                         (if arg3 (str "\nelse\n" arg3))
+                         "\nfi")
         :not        (str "! " arg1)
         :dir        (str "-d " arg1)
         :eval       (str "\"$(" arg1 ")\"")
@@ -225,7 +234,7 @@
 (defn help [options]
   (->> ["Edit my dotfiles."
         ""
-        "Usage: dot [options]"
+        "Usage: dots [options]"
         ""
         "Options:"
         ""
@@ -238,7 +247,7 @@
         (parse-opts args cli-options)]
     (cond
       (:help options)     (exit 0 (help summary))
-      errors              (exit 1 (str (first errors) "\nSee \"dot --help\""))
+      errors              (exit 1 (str (first errors) "\nSee \"dots --help\""))
       (:script options)   (print (bash (dots-script (get-sources))))
       :else               (edit-dots))))
 
