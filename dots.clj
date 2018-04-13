@@ -20,7 +20,7 @@
      [:xmonad "--restart"]
      [:sleep 0.1]]
     ".Xdefaults"
-    [:xrdb "-merge" "~/.Xdefaults"]
+    [:xrdb "-merge" "$HOME/.Xdefaults"]
     ".vimrc"
     [:pipe
      [:echo]
@@ -144,18 +144,18 @@
            [:equals [:eval
                      [:pipe
                       [:sha1sum path]
-                      [:cut "-d" "' '" "-f" 1]]] sha-1]]
+                      [:cut "-d" " " "-f" 1]]] sha-1]]
       [:do
        [:redirect [:pipe
                    [:echo "-n" (encode contents)]
                    [:base64 "--decode"]] path]
        (if exec? [:chmod "+x" path])
-       [:echo "'  -> wrote'" path]
+       [:echo "  -> wrote" path]
        (if restarts
          [:do
-          [:echo "'  -> performaing restarts'"]
+          [:echo "  -> performaing restarts"]
           restarts])]
-      [:echo "'  -> skipping'" path]]]))
+      [:echo "  -> skipping" path]]]))
 
 (defn install-host [files machine]
   (let [{:keys [host config/theme config/profiles]} machine
@@ -163,7 +163,7 @@
         install-files (map #(install-file config %) files)]
     [:if [:equals [:eval [:hostname]] (name host)]
      [:do
-      [:echo (str "'==> detected '" (name host))]
+      [:echo (str "==> detected " (name host))]
       (cons :do install-files)]]))
 
 (defn dots-script [files]
@@ -173,11 +173,11 @@
     "https://github.com/VundleVim/Vundle.vim.git"
     "$HOME/.vim/bundle/Vundle.vim")
    (cons :do (map #(install-host files %) machines))
-   [:echo "'==> successfully installed dotfiles'"]])
+   [:echo "==> successfully installed dotfiles"]])
 
 (defn bash [script]
   (cond
-    (string? script) script
+    (string? script) (str "\"" script "\"")
     (or (vector? script) (seq? script))
     (let [[op & args] script
           args (map bash (filter some? args))
@@ -190,7 +190,7 @@
                          "\nfi")
         :not        (str "! " arg1)
         :dir        (str "-d " arg1)
-        :eval       (str "\"$(" arg1 ")\"")
+        :eval       (str "$(" arg1 ")")
         :pipe       (str/join " | " args)
         :equals     (str arg1 " == " arg2)
         :redirect   (str arg1 " > " arg2)
