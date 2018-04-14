@@ -209,7 +209,7 @@
 (defn app [req]
   (if (= (:uri req) "/stream")
     (http/with-channel req ch
-      (http/on-close ch (fn [_]  (swap! chans disj ch)))
+      (http/on-close ch (fn [_] (swap! chans disj ch)))
       (swap! chans conj ch))
     {:statue 200
      :headers {"Content-Type" "text/plain"}
@@ -221,7 +221,7 @@
                  :handler #(doseq [ch @chans]
                              (http/send! ch (str (bash (dots-script [(:file %2)])) "\n") false))}])
   (let [runtime (Runtime/getRuntime)
-        p (.start (.inheritIO (ProcessBuilder.  ["vim" "dots.clj"])))]
+        p (.start (.inheritIO (ProcessBuilder. ["vim" "dots.clj"])))]
     (.addShutdownHook runtime (Thread. #(.destroy p)))
     (->> (nrepl/start-server) :port (spit ".nrepl-port"))
     (http/run-server #(app %) {:host "0.0.0.0" :port 8080})
