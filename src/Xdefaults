@@ -32,8 +32,8 @@ urxvt*scrollStyle:  rxvt
 urxvt*scrollBar:    false
 
 ! Transparency
-urxvt*transparent:  false
-!urxvt*shading:      15
+urxvt*transparent:  true
+urxvt*shading:      100
 
 urxvt*cursorBlink:  true
 urxvt*allow_bold:   true

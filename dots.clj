@@ -6,7 +6,10 @@
             [hawk.core :as hawk]
             [org.httpkit.server :as http]
             [digest :refer [sha-1]])
-  (:import java.util.Base64))
+  (:import (java.util Base64)
+           (java.io StringReader ByteArrayOutputStream)
+           (org.apache.batik.transcoder TranscoderInput TranscoderOutput)
+           (org.apache.batik.transcoder.image PNGTranscoder)))
 
 (def db
   {:config/restarts
@@ -26,7 +29,9 @@
      [:echo]
      [:redirect
       [:vim "+PlugInstall" "+qall"]
-      "/dev/null"]]}
+      "/dev/null"]]
+    ".wallpaper/arch.png"
+    [:feh "--bg-fill" "$HOME/.wallpaper/arch.png"]}
    :config/profiles
    {:default
     {:theme/dpi 96
@@ -108,6 +113,13 @@
           (list? expr)    (eval
                            `(let [~'config ~config] ~expr))))))))
 
+(defn svg->png [svg]
+  (with-open [out (ByteArrayOutputStream.)]
+    (.transcode (PNGTranscoder.)
+                (TranscoderInput. (StringReader. svg))
+                (TranscoderOutput. out))
+    (.toByteArray out)))
+
 (def machines
   [{:host :red-machine
     :config/profiles [:default]
@@ -123,7 +135,7 @@
   [:if [:not [:dir path]] [:git "clone" url path]])
 
 (defn encode [s]
-  (.encodeToString (Base64/getEncoder) (.getBytes s)))
+  (.encodeToString (Base64/getEncoder) (if (string? s) (.getBytes s) s)))
 
 (def cwd (.toPath (.getAbsoluteFile (io/file "src"))))
 
@@ -132,8 +144,12 @@
 
 (defn install-file [config file]
   (let [contents (render-string config (slurp file))
+        contents (if (re-matches #".*\.svg$" (.getName file))
+                   (svg->png contents)
+                   contents)
         sha-1 (sha-1 contents)
         path  (rename file)
+        path (str/replace path #"\.svg$" ".png")
         restarts (get-in db [:config/restarts path])
         path (str "$HOME/" path)
         exec? (.canExecute file)]
