@@ -194,6 +194,28 @@
    (cons :do (map #(install-host files %) machines))
    [:echo "==> successfully installed dotfiles"]])
 
+(defn hoist
+  ([script]
+   (let [{:keys [vars script]} (hoist script {})]
+     [:do
+      (cons :do (map (fn [[v k]] [:def k v]) vars))
+      script]))
+  ([script vars]
+   (cond
+     (and (string? script) (> (count script) 100))
+     (if-let [var (get vars script)]
+       {:vars vars :script [:ref var]}
+       (let [var (gensym)]
+         {:vars (assoc vars script var) :script [:ref var]}))
+     (or (vector? script) (seq? script))
+     (reduce
+      (fn [acc script]
+        (let [{:keys [vars script]} (hoist script (:vars acc))]
+          {:vars vars :script (conj (:script acc) script)}))
+      {:vars vars :script [(first script)]}
+      (rest script))
+     :else {:vars vars :script script})))
+
 (defn bash [script]
   (cond
     (string? script) (str "\"" script "\"")
@@ -213,6 +235,8 @@
         :pipe       (str/join " | " args)
         :equals     (str arg1 " == " arg2)
         :redirect   (str arg1 " > " arg2)
+        :def        (str arg1 "=" arg2)
+        :ref        (str "$" arg1)
         (str (name op) " " (str/join " " args))))
     :else script))
 
@@ -232,7 +256,7 @@
       (swap! chans conj ch))
     {:statue 200
      :headers {"Content-Type" "text/plain"}
-     :body (bash (dots-script (get-sources)))}))
+     :body (bash (hoist (dots-script (get-sources))))}))
 
 (defn edit-dots []
   (let [files (a/chan (a/dropping-buffer 1))
@@ -274,7 +298,7 @@
     (cond
       (:help options)     (exit 0 (help summary))
       errors              (exit 1 (str (first errors) "\nSee \"dots --help\""))
-      (:script options)   (print (bash (dots-script (get-sources))))
+      (:script options)   (print (bash (hoist (dots-script (get-sources)))))
       :else               (edit-dots))))
 
 (apply main *command-line-args*)
