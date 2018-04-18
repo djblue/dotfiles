@@ -3,6 +3,7 @@
             [clojure.tools.nrepl.server :as nrepl]
             [clojure.string :as str]
             [clojure.java.io :as io]
+            [clojure.core.async :as a]
             [hawk.core :as hawk]
             [org.httpkit.server :as http]
             [digest :refer [sha-1]])
@@ -234,15 +235,22 @@
      :body (bash (dots-script (get-sources)))}))
 
 (defn edit-dots []
-  (hawk/watch! [{:paths ["src"]
-                 :filter hawk/file?
-                 :handler #(doseq [ch @chans]
-                             (http/send! ch (str (bash (dots-script [(:file %2)])) "\n") false))}])
-  (let [runtime (Runtime/getRuntime)
+  (let [files (a/chan (a/dropping-buffer 1))
+        runtime (Runtime/getRuntime)
         p (.start (.inheritIO (ProcessBuilder. ["vim" "dots.clj"])))]
+    (hawk/watch! [{:paths ["src"]
+                   :filter hawk/file?
+                   :handler #(a/put! files (:file %2))}])
     (.addShutdownHook runtime (Thread. #(.destroy p)))
     (->> (nrepl/start-server) :port (spit ".nrepl-port"))
     (http/run-server #(app %) {:host "0.0.0.0" :port 8080})
+    (a/go-loop []
+      (let [file (a/<! files)]
+        (a/<! (a/timeout 100))
+        (a/take! files identity)
+        (let [script (str (bash (dots-script [file])) "\n")]
+          (doseq [ch @chans] (http/send! ch script false)))
+        (recur)))
     (exit (.waitFor p))))
 
 (def cli-options
