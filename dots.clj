@@ -172,7 +172,7 @@
        [:echo "  -> wrote" path]
        (if restarts
          [:do
-          [:echo "  -> performaing restarts"]
+          [:echo "  -> performing restarts"]
           restarts])]
       [:echo "  -> skipping" path]]]))
 
