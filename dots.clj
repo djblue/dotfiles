@@ -113,12 +113,14 @@
           (list? expr)    (eval
                            `(let [~'config ~config] ~expr))))))))
 
-(defn svg->png [svg]
-  (with-open [out (ByteArrayOutputStream.)]
-    (.transcode (PNGTranscoder.)
-                (TranscoderInput. (StringReader. svg))
-                (TranscoderOutput. out))
-    (.toByteArray out)))
+(def svg->png
+  (memoize
+   (fn [svg]
+     (with-open [out (ByteArrayOutputStream.)]
+       (.transcode (PNGTranscoder.)
+                   (TranscoderInput. (StringReader. svg))
+                   (TranscoderOutput. out))
+       (.toByteArray out)))))
 
 (def machines
   [{:host :red-machine
