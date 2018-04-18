@@ -209,9 +209,7 @@
          {:vars (assoc vars script var) :script [:ref var]}))
      (or (vector? script) (seq? script))
      (reduce
-      (fn [acc script]
-        (let [{:keys [vars script]} (hoist script (:vars acc))]
-          {:vars vars :script (conj (:script acc) script)}))
+      #(merge-with conj %1 (hoist %2 (:vars %1)))
       {:vars vars :script [(first script)]}
       (rest script))
      :else {:vars vars :script script})))
