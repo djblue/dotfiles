@@ -76,7 +76,7 @@
     # the top and down respectively.
     # The width can be negative.  In this case the actual width is the
     # screen width minus the width defined in within the geometry option.
-    geometry = "x5-0+{{(if (> (:theme/dpi config) 96) 64 32)}}"
+    geometry = "x5-0-0"
 
     # Define the title of the windows spawned by dunst
     title = Dunst
