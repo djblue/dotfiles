@@ -3,6 +3,7 @@
             [clojure.tools.nrepl.server :as nrepl]
             [clojure.string :as str]
             [clojure.java.io :as io]
+            [clojure.java.shell :refer [sh]]
             [clojure.core.async :as a]
             [hawk.core :as hawk]
             [org.httpkit.server :as http]
@@ -145,7 +146,7 @@
 (defn rename [file]
   (str "." (.toString (.relativize cwd (.toPath (.getAbsoluteFile file))))))
 
-(defn install-file [config file]
+(defn install-file [config file notify?]
   (let [contents (render-string config (slurp file))
         contents (if (re-matches #".*\.svg$" (.getName file))
                    (svg->png contents)
@@ -169,29 +170,33 @@
                    [:echo "-n" (encode contents)]
                    [:base64 "--decode"]] path]
        (if exec? [:chmod "+x" path])
-       [:echo "  -> wrote" path]
+       (if notify?
+         [:notify-send "--urgency" "low" "File Written" path]
+         [:echo "  -> wrote" path])
        (if restarts
          [:do
           [:echo "  -> performing restarts"]
           restarts])]
-      [:echo "  -> skipping" path]]]))
+      (if notify?
+        [:notify-send "--urgency" "low" "File Skipped" path]
+        [:echo "  -> skipping" path])]]))
 
-(defn install-host [files machine]
+(defn install-host [files machine notify?]
   (let [{:keys [host config/theme config/profiles]} machine
         config (get-config db theme profiles)
-        install-files (map #(install-file config %) files)]
+        install-files (map #(install-file config % notify?) files)]
     [:if [:equals [:eval [:hostname]] (name host)]
      [:do
       [:echo (str "==> detected " (name host))]
       (cons :do install-files)]]))
 
-(defn dots-script [files]
+(defn dots-script [files & {:keys [notify?] :or {notify? false}}]
   [:do
    [:set "-e"]
    (git-clone
     "https://github.com/VundleVim/Vundle.vim.git"
     "$HOME/.vim/bundle/Vundle.vim")
-   (cons :do (map #(install-host files %) machines))
+   (cons :do (map #(install-host files % notify?) machines))
    [:echo "==> successfully installed dotfiles"]])
 
 (defn hoist
@@ -245,16 +250,10 @@
 (defn get-sources []
   (->> "src/" io/file file-seq (filter #(.isFile %))))
 
-(def chans (atom #{}))
-
 (defn app [req]
-  (if (= (:uri req) "/stream")
-    (http/with-channel req ch
-      (http/on-close ch (fn [_] (swap! chans disj ch)))
-      (swap! chans conj ch))
-    {:statue 200
-     :headers {"Content-Type" "text/plain"}
-     :body (bash (hoist (dots-script (get-sources))))}))
+  {:statue 200
+   :headers {"Content-Type" "text/plain"}
+   :body (bash (hoist (dots-script (get-sources))))})
 
 (defn edit-dots []
   (let [files (a/chan (a/dropping-buffer 1))
@@ -270,8 +269,7 @@
       (let [file (a/<! files)]
         (a/<! (a/timeout 100))
         (a/take! files identity)
-        (let [script (str (bash (dots-script [file])) "\n")]
-          (doseq [ch @chans] (http/send! ch script false)))
+        (sh "bash" :in (bash (dots-script [file] :notify? true)))
         (recur)))
     (exit (.waitFor p))))
 
