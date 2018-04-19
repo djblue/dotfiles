@@ -26,6 +26,7 @@ Plugin 'luochen1990/rainbow'
 Plugin 'vim-scripts/paredit.vim'
 Plugin 'tpope/vim-fireplace'
 Plugin 'venantius/vim-cljfmt'
+Plugin 'Chiel92/vim-autoformat'
 Plugin '{{:theme/vim-plugin}}'
 
 " All of your Plugins must be added before the following line
@@ -38,7 +39,11 @@ let g:rainbow_conf = {
       \ 'ctermfgs': ['darkred', 'darkblue', 'gray', 'lightblue', 'darkmagenta']
       \ }
 
+let g:formatdef_my_custom_clojure = '"cljfmt"'
+let g:formatters_clojure = ['my_custom_clojure']
+
 au BufWrite *.clj :Cljfmt
+au BufWrite *.cljs :Autoformat
 
 let g:slime_target = "tmux"
 
