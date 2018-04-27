@@ -16,7 +16,7 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.2 2405546, 2018-03-11"
-   sodipodi:docname="wallpaper.svg"
+   sodipodi:docname="arch.svg"
    inkscape:export-filename="/home/chris/wallpaper.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96">
@@ -110,14 +110,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.58082766"
-     inkscape:cx="1391.6456"
-     inkscape:cy="1254.6756"
+     inkscape:cx="1548.8777"
+     inkscape:cy="1253.6329"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="2840"
-     inkscape:window-height="1696"
-     inkscape:window-x="16"
+     inkscape:window-width="2272"
+     inkscape:window-height="2488"
+     inkscape:window-x="2896"
      inkscape:window-y="80"
      inkscape:window-maximized="0"
      inkscape:snap-page="false"
@@ -278,7 +278,8 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(602.49408,-1086.2916)"
-     style="display:inline">
+     style="display:none"
+     sodipodi:insensitive="true">
     <rect
        y="1088.4083"
        x="-687.53033"
