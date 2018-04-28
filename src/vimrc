@@ -13,6 +13,7 @@ Plugin 'VundleVim/Vundle.vim'
 
 Plugin 'scrooloose/nerdtree'
 Plugin 'tpope/vim-fugitive'
+Plugin 'airblade/vim-gitgutter'
 Plugin 'jelera/vim-javascript-syntax'
 Plugin 'tpope/vim-markdown'
 Plugin 'vim-airline/vim-airline'
@@ -32,6 +33,8 @@ Plugin '{{:theme/vim-plugin}}'
 call vundle#end()            " required
 filetype plugin indent on    " required
 set omnifunc=syntaxcomplete#Complete
+
+set updatetime=100
 
 let g:rainbow_active = 1
 let g:rainbow_conf = {
