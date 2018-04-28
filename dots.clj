@@ -174,9 +174,11 @@
          [:notify-send "--urgency" "low" "File Written" path]
          [:echo "  -> wrote" path])
        (if restarts
-         [:do
-          [:echo "  -> performing restarts"]
-          restarts])]
+         [:if [:env "$SKIP_RESTARTS"]
+          [:echo "  -> skipping restarts"]
+          [:do
+           [:echo "  -> performing restarts"]
+           restarts]])]
       (if notify?
         [:notify-send "--urgency" "low" "File Skipped" path]
         [:echo "  -> skipping" path])]]))
@@ -234,6 +236,7 @@
                          "\nfi")
         :not        (str "! " arg1)
         :dir        (str "-d " arg1)
+        :env        (str "! -z " arg1)
         :eval       (str "$(" arg1 ")")
         :pipe       (str/join " | " args)
         :equals     (str arg1 " == " arg2)
