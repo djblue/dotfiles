@@ -1,5 +1,7 @@
 # dotfiles
 
+[![Build Status](https://travis-ci.org/djblue/dotfiles.svg?branch=master)](https://travis-ci.org/djblue/dotfiles)
+
 A simple repo for all my config files and a setup script to help bootstrap
 my system defaults.
 
