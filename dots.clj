@@ -187,10 +187,11 @@
   (let [{:keys [host config/theme config/profiles]} machine
         config (get-config db theme profiles)
         install-files (map #(install-file config % notify?) files)]
-    [:if [:equals [:eval [:hostname]] (name host)]
+    [(name host)
      [:do
       [:echo (str "==> detected " (name host))]
-      (cons :do install-files)]]))
+      (cons :do install-files)
+      [:echo "==> successfully installed dotfiles"]]]))
 
 (defn dots-script [files & {:keys [notify?] :or {notify? false}}]
   [:do
@@ -198,8 +199,15 @@
    (git-clone
     "https://github.com/VundleVim/Vundle.vim.git"
     "$HOME/.vim/bundle/Vundle.vim")
-   (cons :do (map #(install-host files % notify?) machines))
-   [:echo "==> successfully installed dotfiles"]])
+   (-> [:case [:eval [:hostname]]]
+       (into (mapcat #(install-host files % notify?) machines))
+       (conj [:do
+              (if notify?
+                [:notify-send
+                 "--urgency" "critical"
+                 "dots" "unknown host - cannot install dotfiles"]
+                [:echo "==> unknown host - cannot install dotfiles"])
+              [:exit 1]]))])
 
 (defn hoist
   ([script]
@@ -234,6 +242,16 @@
                          arg2
                          (if arg3 (str "\nelse\n" arg3))
                          "\nfi")
+        :case       (str "case " arg1 " in\n"
+                         (->> (rest args)
+                              (partition-all 2)
+                              (map
+                               (fn [[c e]]
+                                 (if e
+                                   (str c ")\n" e "\n;;")
+                                   (str "*)\n" c))))
+                              (str/join "\n"))
+                         "\nesac")
         :not        (str "! " arg1)
         :dir        (str "-d " arg1)
         :env        (str "! -z " arg1)
