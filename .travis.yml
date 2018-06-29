@@ -13,7 +13,7 @@ install:
 script:
   - mkdir target
   - clojure dots.clj -s > target/install.sh
-  - cat target/install.sh | HOME=test SKIP_RESTARTS=1 bash
+  - cat target/install.sh | HOME=test SKIP_RESTARTS=1 HOST=archy bash
   - '[[ $(find test -type f | wc -l) != 0 ]]'
 deploy:
   provider: pages

@@ -174,7 +174,7 @@
          [:notify-send "--urgency" "low" "File Written" path]
          [:echo "  -> wrote" path])
        (if restarts
-         [:if [:env "$SKIP_RESTARTS"]
+         [:if [:not [:zero "$SKIP_RESTARTS"]]
           [:echo "  -> skipping restarts"]
           [:do
            [:echo "  -> performing restarts"]
@@ -191,7 +191,7 @@
      [:do
       [:echo (str "==> detected " (name host))]
       (cons :do install-files)
-      [:echo "==> successfully installed dotfiles"]]]))
+      [:echo "==> successfully installed dotfiles :)"]]]))
 
 (defn dots-script [files & {:keys [notify?] :or {notify? false}}]
   [:do
@@ -199,14 +199,18 @@
    (git-clone
     "https://github.com/VundleVim/Vundle.vim.git"
     "$HOME/.vim/bundle/Vundle.vim")
-   (-> [:case [:eval [:hostname]]]
+   [:if [:zero "$HOST"]
+    [:do
+     [:def :HOST [:eval [:hostname]]]
+     [:echo "==> HOST envrionment variable not set\n  -> setting hostname to '$HOST'"]]]
+   (-> [:case "$HOST"]
        (into (mapcat #(install-host files % notify?) machines))
        (conj [:do
               (if notify?
                 [:notify-send
                  "--urgency" "critical"
                  "dots" "unknown host - cannot install dotfiles"]
-                [:echo "==> unknown host - cannot install dotfiles"])
+                [:echo "==> unknown host '$HOST'\n  -> cannot install dotfiles :("])
               [:exit 1]]))])
 
 (defn hoist
@@ -254,12 +258,12 @@
                          "\nesac")
         :not        (str "! " arg1)
         :dir        (str "-d " arg1)
-        :env        (str "! -z " arg1)
+        :zero       (str "-z " arg1)
         :eval       (str "$(" arg1 ")")
         :pipe       (str/join " | " args)
         :equals     (str arg1 " == " arg2)
         :redirect   (str arg1 " > " arg2)
-        :def        (str arg1 "=" arg2)
+        :def        (str (name arg1) "=" arg2)
         :ref        (str "$" arg1)
         (str (name op) " " (str/join " " args))))
     :else script))
