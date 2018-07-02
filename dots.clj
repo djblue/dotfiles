@@ -146,7 +146,7 @@
 (defn rename [file]
   (str "." (.toString (.relativize cwd (.toPath (.getAbsoluteFile file))))))
 
-(defn install-file [config file notify?]
+(defn install-file [config file]
   (let [contents (render-string config (slurp file))
         contents (if (re-matches #".*\.svg$" (.getName file))
                    (svg->png contents)
@@ -170,30 +170,25 @@
                    [:echo "-n" (encode contents)]
                    [:base64 "--decode"]] path]
        (if exec? [:chmod "+x" path])
-       (if notify?
-         [:notify-send "--urgency" "low" "File Written" path]
-         [:echo "  -> wrote" path])
+       [:echo "  -> wrote" path]
        (if restarts
          [:if [:not [:zero "$SKIP_RESTARTS"]]
           [:echo "  -> skipping restarts"]
           [:do
            [:echo "  -> performing restarts"]
            restarts]])]
-      (if notify?
-        [:notify-send "--urgency" "low" "File Skipped" path]
-        [:echo "  -> skipping" path])]]))
+      [:echo "  -> skipping" path]]]))
 
-(defn install-host [files machine notify?]
+(defn install-host [files machine]
   (let [{:keys [host config/theme config/profiles]} machine
         config (get-config db theme profiles)
-        install-files (map #(install-file config % notify?) files)]
+        install-files (map #(install-file config %) files)]
     [(name host)
      [:do
       [:echo (str "==> detected " (name host))]
-      (cons :do install-files)
-      [:echo "==> successfully installed dotfiles :)"]]]))
+      (cons :do install-files)]]))
 
-(defn dots-script [files & {:keys [notify?] :or {notify? false}}]
+(defn dots-script [files]
   [:do
    [:set "-e"]
    (git-clone
@@ -204,14 +199,11 @@
      [:def :HOST [:eval [:hostname]]]
      [:echo "==> HOST envrionment variable not set\n  -> setting hostname to '$HOST'"]]]
    (-> [:case "$HOST"]
-       (into (mapcat #(install-host files % notify?) machines))
+       (into (mapcat #(install-host files %) machines))
        (conj [:do
-              (if notify?
-                [:notify-send
-                 "--urgency" "critical"
-                 "dots" "unknown host - cannot install dotfiles"]
-                [:echo "==> unknown host '$HOST'\n  -> cannot install dotfiles :("])
-              [:exit 1]]))])
+              [:echo "==> unknown host '$HOST'\n  -> cannot install dotfiles :("]
+              [:exit 1]]))
+   [:echo "==> successfully installed dotfiles :)"]])
 
 (defn hoist
   ([script]
@@ -280,10 +272,16 @@
    :headers {"Content-Type" "text/plain"}
    :body (bash (hoist (dots-script (get-sources))))})
 
+(defn get-str [result]
+  (str ":echo \""
+       (str/escape (str/trim (:out result)) {\" "\\\""
+                                             \newline "\\n"})
+       "\"<CR>"))
+
 (defn edit-dots []
   (let [files (a/chan (a/dropping-buffer 1))
         runtime (Runtime/getRuntime)
-        p (.start (.inheritIO (ProcessBuilder. ["vim" "dots.clj"])))]
+        p (.start (.inheritIO (ProcessBuilder. ["vim" "--servername" "dots" "dots.clj"])))]
     (hawk/watch! [{:paths ["src"]
                    :filter hawk/file?
                    :handler #(a/put! files (:file %2))}])
@@ -294,7 +292,13 @@
       (let [file (a/<! files)]
         (a/<! (a/timeout 100))
         (a/take! files identity)
-        (sh "bash" :in (bash (dots-script [file] :notify? true)))
+        (let [result (sh "bash" :in (bash (dots-script [file])))]
+          (.waitFor (.start (ProcessBuilder.
+                             ["vim"
+                              "--servername"
+                              "dots"
+                              "--remote-send"
+                              (get-str result)]))))
         (recur)))
     (exit (.waitFor p))))
 
