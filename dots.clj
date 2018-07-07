@@ -1,10 +1,12 @@
 (ns dots.core
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.nrepl.server :as nrepl]
+            [clojure.pprint :refer [pprint]]
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.java.shell :refer [sh]]
             [clojure.core.async :as a]
+            [clojure.test :refer [is deftest] :as t]
             [hawk.core :as hawk]
             [org.httpkit.server :as http]
             [digest :refer [sha-1]])
@@ -146,7 +148,27 @@
 (defn rename [file]
   (str "." (.toString (.relativize cwd (.toPath (.getAbsoluteFile file))))))
 
-(defn install-file [config file]
+(defn echo [path value]
+  [:do
+   [:pipe
+    [:echo "-n" (encode (str path))]
+    [:base64 "-d"]]
+   (cond
+     (string? value) [:do
+                      [:echo "-n" " \\\""]
+                      [:echo "-n" value]
+                      [:echo "\\\""]]
+     :else [:echo "" value])])
+
+(defn parse [out]
+  (->> (str "[" out "]")
+       (read-string)
+       (partition 2)
+       (reduce
+        (fn [acc [path value]] (assoc-in acc path value))
+        {:dots/files []})))
+
+(defn install-file [idx config file]
   (let [contents (render-string config (slurp file))
         contents (if (re-matches #".*\.svg$" (.getName file))
                    (svg->png contents)
@@ -158,6 +180,8 @@
         path (str "$HOME/" path)
         exec? (.canExecute file)]
     [:do
+     (echo [:dots/files idx :file/path] path)
+     (echo [:dots/files idx :file/sha-1] sha-1)
      [:mkdir "-p" [:eval [:dirname path]]]
      [:touch path]
      [:if [:not
@@ -170,22 +194,22 @@
                    [:echo "-n" (encode contents)]
                    [:base64 "--decode"]] path]
        (if exec? [:chmod "+x" path])
-       [:echo "  -> wrote" path]
+       (echo [:dots/files idx :file/exec?] exec?)
        (if restarts
          [:if [:not [:zero "$SKIP_RESTARTS"]]
-          [:echo "  -> skipping restarts"]
+          (echo [:dots/files idx :file/skip-restarts?] true)
           [:do
-           [:echo "  -> performing restarts"]
+           (echo [:dots/files idx :file/skip-restarts?] false)
            restarts]])]
-      [:echo "  -> skipping" path]]]))
+      (echo [:dots/files idx :file/skip-install?] true)]]))
 
 (defn install-host [files machine]
   (let [{:keys [host config/theme config/profiles]} machine
         config (get-config db theme profiles)
-        install-files (map #(install-file config %) files)]
+        install-files (map-indexed (fn [idx itm]
+                                     (install-file idx config itm)) files)]
     [(name host)
      [:do
-      [:echo (str "==> detected " (name host))]
       (cons :do install-files)]]))
 
 (defn dots-script [files]
@@ -197,13 +221,15 @@
    [:if [:zero "$HOST"]
     [:do
      [:def :HOST [:eval [:hostname]]]
-     [:echo "==> HOST envrionment variable not set\n  -> setting hostname to '$HOST'"]]]
+     (echo [:system/host-set?] false)]
+    (echo [:system/host-set?] true)]
+   (echo [:system/host] "$HOST")
    (-> [:case "$HOST"]
        (into (mapcat #(install-host files %) machines))
        (conj [:do
-              [:echo "==> unknown host '$HOST'\n  -> cannot install dotfiles :("]
+              (echo [:dots/status] :dots/unknown-host)
               [:exit 1]]))
-   [:echo "==> successfully installed dotfiles :)"]])
+   (echo [:dots/status] :dots/success)])
 
 (defn hoist
   ([script]
@@ -272,10 +298,15 @@
    :headers {"Content-Type" "text/plain"}
    :body (bash (hoist (dots-script (get-sources))))})
 
-(defn get-str [result]
+(defn vim-echo [result]
   (str ":echo \""
-       (str/escape (str/trim (:out result)) {\" "\\\""
-                                             \newline "\\n"})
+       (-> result
+           :out
+           parse
+           pprint
+           with-out-str
+           str/trim
+           (str/escape {\" "\\\"" \newline "\\n"}))
        "\"<CR>"))
 
 (defn edit-dots []
@@ -298,7 +329,7 @@
                               "--servername"
                               "dots"
                               "--remote-send"
-                              (get-str result)]))))
+                              (vim-echo result)]))))
         (recur)))
     (exit (.waitFor p))))
 
@@ -323,7 +354,38 @@
     (cond
       (:help options)     (exit 0 (help summary))
       errors              (exit 1 (str (first errors) "\nSee \"dots --help\""))
-      (:script options)   (print (bash (hoist (dots-script (get-sources)))))
+      (:script options)   (do
+                            (let [results (binding [t/*test-out* *err*]
+                                            (t/with-test-out (t/run-tests *ns*)))]
+                              (if-not (= (+ (:fail results) (:error results)) 0)
+                                (exit 1)
+                                (println (bash (hoist (dots-script (get-sources))))))
+                              (exit 0)))
       :else               (edit-dots))))
+
+(deftest install-known-host
+  (let [sources (get-sources)
+        process (sh "bash"
+                    :env {:HOST "archy"
+                          :HOME "./test"
+                          :SKIP_RESTARTS 1}
+                    :in (bash (dots-script sources)))
+        output (-> process :out parse)]
+    (is (= (:exit process) 0))
+    (is (= (:dots/status output) :dots/success))
+    (is (= (:system/host-set? output) true))
+    (is (= (-> output :dots/files count) (count sources)))))
+
+(deftest install-unknown-host
+  (let [sources []
+        process (sh "bash"
+                    :env {:HOST "unknown"
+                          :HOME "./test"
+                          :SKIP_RESTARTS 1}
+                    :in (bash (dots-script sources)))
+        output (-> process :out parse)]
+    (is (= (:exit process) 1))
+    (is (= (:dots/status output) :dots/unknown-host))
+    (is (= (:system/host-set? output) true))))
 
 (apply main *command-line-args*)
