@@ -368,13 +368,23 @@
                               (exit 0)))
       :else               (edit-dots))))
 
+(defn with-tmp-home [script]
+  (let [var (gensym)]
+    [:do
+     [:def var [:eval [:mktemp "-d"]]]
+     [:def :HOME [:ref var]]
+     [:trap (str "{ rm -r $" var "; }") 'EXIT]
+     script]))
+
+(defn run-install [sources env]
+  (sh "bash"
+      :env (merge
+            {:SKIP_RESTARTS 1} env)
+      :in (bash (with-tmp-home (dots-script sources)))))
+
 (deftest install-known-host
   (let [sources (get-sources)
-        process (sh "bash"
-                    :env {:HOST "archy"
-                          :HOME "./test"
-                          :SKIP_RESTARTS 1}
-                    :in (bash (dots-script sources)))
+        process (run-install sources {:HOST "archy"})
         output (-> process :out parse)]
     (is (= (:exit process) 0))
     (is (= (:dots/status output) :dots/success))
@@ -382,12 +392,7 @@
     (is (= (-> output :dots/files count) (count sources)))))
 
 (deftest install-unknown-host
-  (let [sources []
-        process (sh "bash"
-                    :env {:HOST "unknown"
-                          :HOME "./test"
-                          :SKIP_RESTARTS 1}
-                    :in (bash (dots-script sources)))
+  (let [process (run-install [] {:HOST "unknown"})
         output (-> process :out parse)]
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/unknown-host))
