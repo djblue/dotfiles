@@ -219,6 +219,10 @@
 (defn dots-script [files]
   [:do
    [:set "-e"]
+   [:if [:zero "$HOME"]
+    [:do
+     (echo [:dots/status] :dots/unknown-home)
+     [:exit 1]]]
    (git-clone
     "https://github.com/VundleVim/Vundle.vim.git"
     "$HOME/.vim/bundle/Vundle.vim")
@@ -380,7 +384,9 @@
   (sh "bash"
       :env (merge
             {:SKIP_RESTARTS 1} env)
-      :in (bash (with-tmp-home (dots-script sources)))))
+      :in (bash ((if (contains? env :HOME)
+                   identity
+                   with-tmp-home) (dots-script sources)))))
 
 (deftest install-known-host
   (let [sources (get-sources)
@@ -397,5 +403,11 @@
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/unknown-host))
     (is (= (:system/host-set? output) true))))
+
+(deftest install-unknown-home
+  (let [process (run-install [] {:HOME nil :HOST "archy"})
+        output (-> process :out parse)]
+    (is (= (:exit process) 1))
+    (is (= (:dots/status output) :dots/unknown-home))))
 
 (apply main *command-line-args*)
