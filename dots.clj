@@ -75,7 +75,7 @@
                    "#8fbcbb"
                    "#eceff4"]}
     :solarized-dark
-    {:theme/name "solarized-dark"
+    {:theme/name "solarized"
      :theme/url "http://ethanschoonover.com/solarized"
      :theme/vim-plugin "altercation/vim-colors-solarized"
      :theme/type "dark"
@@ -96,7 +96,52 @@
                    "#839496"
                    "#6c71c4"
                    "#93a1a1"
-                   "#fdf6e3"]}}})
+                   "#fdf6e3"]}
+    :solarized-light
+    {:theme/name "solarized"
+     :theme/url "http://ethanschoonover.com/solarized"
+     :theme/vim-plugin "altercation/vim-colors-solarized"
+     :theme/type "light"
+     :theme/foreground "#657b83"
+     :theme/background "#fdf6e3"
+     :theme/color ["#073642"
+                   "#dc322f"
+                   "#859900"
+                   "#b58900"
+                   "#268bd2"
+                   "#d33682"
+                   "#2aa198"
+                   "#eee8d5"
+                   "#002b36"
+                   "#cb4b16"
+                   "#586e75"
+                   "#657b83"
+                   "#839496"
+                   "#6c71c4"
+                   "#93a1a1"
+                   "#fdf6e3"]}
+    :monokai
+    {:theme/name "monokai"
+     :theme/vim-plugin "crusoexia/vim-monokai"
+     :theme/type "dark"
+     :theme/foreground "#cccccc"
+     :theme/background "#1b1d1e"
+     :theme/color ["#1b1d1e"
+                   "#ff0044"
+                   "#82b414"
+                   "#fd971f"
+                   "#266c98"
+                   "#ac0cb1"
+                   "#ae81ff"
+                   "#cccccc"
+                   "#808080"
+                   "#f92672"
+                   "#a6e22e"
+                   "#e6db74"
+                   "#7070f0"
+                   "#d63ae1"
+                   "#66d9ef"
+                   "#f8f8f2"]}}})
 
 (defn get-config [db theme profiles]
   (->> profiles
