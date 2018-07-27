@@ -5,12 +5,12 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.java.shell :refer [sh]]
-            [clojure.core.async :as a]
             [clojure.test :refer [is deftest] :as t]
             [hawk.core :as hawk]
             [org.httpkit.server :as http]
             [digest :refer [sha-1]])
   (:import (java.util Base64)
+           (java.net InetAddress)
            (java.io StringReader ByteArrayOutputStream)
            (org.apache.batik.transcoder TranscoderInput TranscoderOutput)
            (org.apache.batik.transcoder.image PNGTranscoder)))
@@ -127,15 +127,19 @@
        (.toByteArray out)))))
 
 (def machines
-  [{:host :red-machine
-    :config/profiles [:default]
+  {:red-machine
+   {:config/profiles [:default]
     :config/theme :nord}
-   {:host :archy
-    :config/profiles [:default]
+   :archy
+   {:config/profiles [:default]
     :config/theme :nord}
-   {:host :osx
-    :config/profiles [:default :laptop :hidpi]
-    :config/theme :nord}])
+   :osx
+   {:config/profiles [:default :laptop :hidpi]
+    :config/theme :nord}
+   :badahdah
+   {:config/profiles [:default]
+    :config/theme :nord
+    :editor ["mvim" "-f"]}})
 
 (defn git-clone [url path]
   [:if [:not [:dir path]] [:git "clone" url path]])
@@ -203,8 +207,8 @@
            restarts]])]
       (echo [:dots/files idx :file/skip-install?] true)]]))
 
-(defn install-host [files machine]
-  (let [{:keys [host config/theme config/profiles]} machine
+(defn install-host [files [host machine]]
+  (let [{:keys [config/theme config/profiles]} machine
         config (get-config db theme profiles)
         install-files (map-indexed (fn [idx itm]
                                      (install-file idx config itm)) files)]
@@ -298,40 +302,41 @@
    :headers {"Content-Type" "text/plain"}
    :body (bash (hoist (dots-script (get-sources))))})
 
-(defn vim-echo [result]
-  (str ":echo \""
-       (-> result
-           :out
-           parse
-           pprint
-           with-out-str
-           str/trim
-           (str/escape {\" "\\\"" \newline "\\n"}))
-       "\"<CR>"))
+(defn spawn [editor]
+  (let [runtime (Runtime/getRuntime)
+        command (concat editor ["--servername" "dots" "dots.clj"])
+        process (.. (ProcessBuilder. command) inheritIO start)]
+    (.addShutdownHook runtime (Thread. #(.destroy process)))
+    process))
+
+(defn send-msg! [editor msg]
+  (let [msg (-> msg str/trim (str/escape {\" "\\\"" \newline "\\n"}))
+        command (concat [(first editor)]
+                        ["--servername"
+                         "dots"
+                         "--remote-send"
+                         (str ":echo \"" msg "\"<CR>")])]
+    (.. (ProcessBuilder. command) start waitFor)))
+
+(defn hostname []
+  (or
+   (System/getenv "HOST")
+   (.getHostName (InetAddress/getLocalHost))))
+
+(defn handle-edit [editor file]
+  (let [run (sh "bash" :in (bash (dots-script [file])))]
+    (send-msg! editor (-> run :out parse pprint with-out-str))))
 
 (defn edit-dots []
-  (let [files (a/chan (a/dropping-buffer 1))
-        runtime (Runtime/getRuntime)
-        p (.start (.inheritIO (ProcessBuilder. ["vim" "--servername" "dots" "dots.clj"])))]
+  (let [host (keyword (hostname))
+        editor (get-in machines [host :editor] ["vim"])
+        process (spawn editor)]
     (hawk/watch! [{:paths ["src"]
                    :filter hawk/file?
-                   :handler #(a/put! files (:file %2))}])
-    (.addShutdownHook runtime (Thread. #(.destroy p)))
+                   :handler #(handle-edit editor (:file %2))}])
     (->> (nrepl/start-server) :port (spit ".nrepl-port"))
     (http/run-server #(app %) {:host "0.0.0.0" :port 8080})
-    (a/go-loop []
-      (let [file (a/<! files)]
-        (a/<! (a/timeout 100))
-        (a/take! files identity)
-        (let [result (sh "bash" :in (bash (dots-script [file])))]
-          (.waitFor (.start (ProcessBuilder.
-                             ["vim"
-                              "--servername"
-                              "dots"
-                              "--remote-send"
-                              (vim-echo result)]))))
-        (recur)))
-    (exit (.waitFor p))))
+    (exit (.waitFor process))))
 
 (def cli-options
   [["-s" "--script" "only output script"]

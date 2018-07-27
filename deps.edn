@@ -1,7 +1,6 @@
 {:deps
  {org.clojure/tools.cli {:mvn/version "0.3.5"}
   org.clojure/tools.nrepl {:mvn/version "0.2.12"}
-  org.clojure/core.async {:mvn/version "0.4.474"}
   hawk {:mvn/version "0.2.11"}
   digest {:mvn/version "1.4.8"}
   org.apache.xmlgraphics/batik-codec {:mvn/version "1.9"}
