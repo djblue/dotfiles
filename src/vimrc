@@ -120,7 +120,6 @@ try
 catch /^Vim\%((\a\+)\)\=:E185/
   " ohh well
 endtry
-let g:airline_powerline_fonts = 1
 
 " enable mouse scrolling
 set mouse=a
