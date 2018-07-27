@@ -126,7 +126,7 @@ let g:airline_powerline_fonts = 1
 set mouse=a
 
 " fix copy paste in vim for tmux
-set clipboard=unnamedplus
+set clipboard=unnamed
 
 " Disable ex-mode
 map Q <Nop>
