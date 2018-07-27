@@ -152,7 +152,7 @@
   [:do
    [:pipe
     [:echo "-n" (encode (str path))]
-    [:base64 "-d"]]
+    [:base64 "--decode"]]
    (cond
      (string? value) [:do
                       [:echo "-n" " \\\""]
