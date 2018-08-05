@@ -73,5 +73,5 @@ exists python2 && alias npm="npm --python=python2"
 
 alias ..='cd ../'
 
-alias pbcopy='xsel --clipboard --input'
-alias pbpaste='xsel --clipboard --output'
+is_osx || alias pbcopy='xsel --clipboard --input'
+is_osx || alias pbpaste='xsel --clipboard --output'
