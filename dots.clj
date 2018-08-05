@@ -183,8 +183,7 @@
     :config/theme :nord}
    :badahdah
    {:config/profiles [:default]
-    :config/theme :nord
-    :editor ["mvim" "-f"]}})
+    :config/theme :nord}})
 
 (defn git-clone [url path]
   [:if [:not [:dir path]] [:git "clone" url path]])
@@ -367,18 +366,20 @@
                          (str ":echo \"" msg "\"<CR>")])]
     (.. (ProcessBuilder. command) start waitFor)))
 
-(defn hostname []
-  (or
-   (System/getenv "HOST")
-   (.getHostName (InetAddress/getLocalHost))))
-
 (defn handle-edit [editor file]
   (let [run (sh "bash" :in (bash (dots-script [file])))]
     (send-msg! editor (-> run :out parse pprint with-out-str))))
 
+(defn has-bin? [bin]
+  (let [file (->> (str/split (System/getenv "PATH") #":")
+                  (map io/file)
+                  (mapcat file-seq)
+                  (filter #(= (.getName %) bin))
+                  first)]
+    (and (some? file) (.canExecute file))))
+
 (defn edit-dots []
-  (let [host (keyword (hostname))
-        editor (get-in machines [host :editor] ["vim"])
+  (let [editor (if (has-bin? "mvim") ["mvim" "-f"] ["vim"])
         process (spawn editor)]
     (hawk/watch! [{:paths ["src"]
                    :filter hawk/file?
