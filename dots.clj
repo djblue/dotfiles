@@ -16,27 +16,7 @@
            (org.apache.batik.transcoder.image PNGTranscoder)))
 
 (def db
-  {:config/restarts
-   {".xmonad/xmonad.hs"
-    [:do
-     [:xmonad "--recompile"]
-     [:xmonad "--restart"]
-     [:sleep 0.1]]
-    ".xmobarrc"
-    [:do
-     [:xmonad "--restart"]
-     [:sleep 0.1]]
-    ".Xdefaults"
-    [:xrdb "-merge" "$HOME/.Xdefaults"]
-    ".vimrc"
-    [:pipe
-     [:echo]
-     [:redirect
-      [:vim "+PlugInstall" "+qall"]
-      "/dev/null"]]
-    ".wallpaper/arch.png"
-    [:feh "--bg-fill" "$HOME/.wallpaper/arch.png"]}
-   :config/profiles
+  {:config/profiles
    {:default
     {:theme/dpi 96
      :theme/font-size 18
@@ -171,30 +151,11 @@
                    (TranscoderOutput. out))
        (.toByteArray out)))))
 
-(def machines
-  {:red-machine
-   {:config/profiles [:default]
-    :config/theme :nord}
-   :archy
-   {:config/profiles [:default]
-    :config/theme :nord}
-   :osx
-   {:config/profiles [:default :laptop :hidpi]
-    :config/theme :nord}
-   :badahdah
-   {:config/profiles [:default]
-    :config/theme :nord}})
-
 (defn git-clone [url path]
   [:if [:not [:dir path]] [:git "clone" url path]])
 
 (defn encode [s]
   (.encodeToString (Base64/getEncoder) (if (string? s) (.getBytes s) s)))
-
-(def cwd (.toPath (.getAbsoluteFile (io/file "src"))))
-
-(defn rename [file]
-  (str "." (.toString (.relativize cwd (.toPath (.getAbsoluteFile file))))))
 
 (defn echo [path value]
   [:do
@@ -213,23 +174,13 @@
        (read-string)
        (partition 2)
        (reduce
-        (fn [acc [path value]] (assoc-in acc path value))
-        {:dots/files []})))
+        (fn [acc [path value]] (assoc-in acc path value)) {})))
 
-(defn install-file [idx config file]
-  (let [contents (render-string config (slurp file))
-        contents (if (re-matches #".*\.svg$" (.getName file))
-                   (svg->png contents)
-                   contents)
-        sha-1 (sha-1 contents)
-        path  (rename file)
-        path (str/replace path #"\.svg$" ".png")
-        restarts (get-in db [:config/restarts path])
-        path (str "$HOME/" path)
-        exec? (.canExecute file)]
+(defn install-file [contents path]
+  (let [sha-1 (sha-1 contents) id (subs sha-1 0 7)]
     [:do
-     (echo [:dots/files idx :file/path] path)
-     (echo [:dots/files idx :file/sha-1] sha-1)
+     (echo [:dots/files id :file/path] path)
+     (echo [:dots/files id :file/sha-1] sha-1)
      [:mkdir "-p" [:eval [:dirname path]]]
      [:touch path]
      [:if [:not
@@ -237,51 +188,113 @@
                      [:pipe
                       [:sha1sum path]
                       [:cut "-d" " " "-f" 1]]] sha-1]]
-      [:do
-       [:redirect [:pipe
-                   [:echo "-n" (encode contents)]
-                   [:base64 "--decode"]] path]
-       (if exec? [:chmod "+x" path])
-       (echo [:dots/files idx :file/exec?] exec?)
-       (if restarts
-         [:if [:not [:zero "$SKIP_RESTARTS"]]
-          (echo [:dots/files idx :file/skip-restarts?] true)
-          [:do
-           (echo [:dots/files idx :file/skip-restarts?] false)
-           restarts]])]
-      (echo [:dots/files idx :file/skip-install?] true)]]))
+      [:redirect [:pipe
+                  [:echo "-n" (encode contents)]
+                  [:base64 "--decode"]] path]
+      (echo [:dots/files id :file/skip-install?] true)]]))
 
-(defn install-host [files [host machine]]
-  (let [{:keys [config/theme config/profiles]} machine
-        config (get-config db theme profiles)
-        install-files (map-indexed (fn [idx itm]
-                                     (install-file idx config itm)) files)]
-    [(name host)
-     [:do
-      (cons :do install-files)]]))
+(defn get-file [ctx filename]
+  (-> ctx :dots/files (get filename)))
+
+(defn install-dotfile [ctx & {:keys [prefix? exec?]
+                              :or {prefix? true exec? false}}]
+  (fn [filename]
+    (let [file (get-file ctx filename)
+          contents (render-string (dissoc ctx :dots/files)
+                                  (slurp file))
+          path (str "$HOME/" (if prefix? "." "") filename)]
+      [:do
+       (install-file contents path)
+       (if exec? [:chmod "+x" path])])))
+
+(defn setup-bin [ctx]
+  (->> ["bin/dots" "bin/dots-reset"]
+       (map (install-dotfile ctx :prefix? false :exec? true))
+       (cons :do)))
+
+(defn setup-shell [ctx]
+  (->> ["aliases" "bashrc" "profile" "tmux.conf" "zshrc" "gitconfig"]
+       (map (install-dotfile ctx))
+       (cons :do)))
+
+(defn setup-vim [ctx]
+  [:do
+   (git-clone "https://github.com/VundleVim/Vundle.vim.git"
+              "$HOME/.vim/bundle/Vundle.vim")
+   (->> ["gvimrc" "ideavimrc" "vimrc"]
+        (map (install-dotfile ctx))
+        (cons :do))])
+
+(defn setup-cli [ctx]
+  [:do (setup-bin ctx) (setup-shell ctx) (setup-vim ctx)])
+
+(defn setup-wallpaper [ctx]
+  (let [path "wallpaper/arch.svg"
+        contents (->> path (get-file ctx) slurp svg->png)
+        path (str "$HOME/" (str/replace path #"\.svg$" ".png"))]
+    [:do
+     (install-file contents path)
+     (case (:system/platform ctx)
+       :linux [:feh "--bg-fill" path]
+       nil)]))
+
+(defn setup-xmonad [ctx]
+  [:do
+   (->> ["xmonad/xmonad.hs"
+         "xmonad/lib/XMonad/Layout/EqualSpacing.hs"
+         "xmobarrc"
+         "dunstrc"
+         "Xdefaults"
+         "xinitrc"]
+        (map (install-dotfile ctx))
+        (cons :do))
+   [:xmonad "--recompile"]
+   [:xmonad "--restart"]
+   [:xrdb "-merge" "$HOME/.Xdefaults"]
+   (setup-wallpaper ctx)])
 
 (defn dots-script [files]
-  [:do
-   [:set "-e"]
-   [:if [:zero "$HOME"]
+  (let [ctx {:dots/files files}]
     [:do
-     (echo [:dots/status] :dots/unknown-home)
-     [:exit 1]]]
-   (git-clone
-    "https://github.com/VundleVim/Vundle.vim.git"
-    "$HOME/.vim/bundle/Vundle.vim")
-   [:if [:zero "$HOST"]
-    [:do
-     [:def :HOST [:eval [:hostname]]]
-     (echo [:system/host-set?] false)]
-    (echo [:system/host-set?] true)]
-   (echo [:system/host] "$HOST")
-   (-> [:case "$HOST"]
-       (into (mapcat #(install-host files %) machines))
-       (conj [:do
-              (echo [:dots/status] :dots/unknown-host)
-              [:exit 1]]))
-   (echo [:dots/status] :dots/success)])
+     [:set "-e"]
+     [:if [:zero "$HOME"]
+      [:do
+       (echo [:dots/status] :dots/unknown-home)
+       [:exit 1]]]
+     [:if [:zero "$HOST"]
+      [:do
+       [:def :HOST [:eval [:hostname]]]
+       (echo [:system/host-set?] false)]
+      (echo [:system/host-set?] true)]
+     (echo [:system/host] "$HOST")
+     [:case "$HOST"
+      "red-machine"
+      (let [ctx (merge ctx
+                       (get-config db :nord [:default]))]
+        [:do
+         (setup-cli ctx)])
+      "archy"
+      (let [ctx (merge ctx
+                       (get-config db :nord [:default]))]
+        [:do
+         (setup-cli ctx)
+         (setup-xmonad ctx)])
+      "osx"
+      (let [ctx (merge ctx
+                       (get-config db :nord [:default :laptop :hidpi]))]
+        [:do
+         (setup-cli ctx)
+         (setup-xmonad ctx)])
+      "badahdah"
+      (let [ctx (merge ctx
+                       (get-config db :nord [:default]))]
+        [:do
+         (setup-cli ctx)
+         (setup-wallpaper ctx)])
+      [:do
+       (echo [:dots/status] :dots/unknown-host)
+       [:exit 1]]]
+     (echo [:dots/status] :dots/success)]))
 
 (defn hoist
   ([script]
@@ -342,8 +355,18 @@
   (apply println msg)
   (System/exit code))
 
+(def cwd (.toPath (.getAbsoluteFile (io/file "src"))))
+
+(defn get-relative-name [file]
+  (.toString (.relativize cwd (.toPath (.getAbsoluteFile file)))))
+
 (defn get-sources []
-  (->> "src/" io/file file-seq (filter #(.isFile %))))
+  (->> "src/"
+       io/file
+       file-seq
+       (filter #(.isFile %))
+       (map #(-> [(get-relative-name %) %]))
+       (into {})))
 
 (defn app [req]
   {:statue 200
@@ -367,7 +390,7 @@
     (.. (ProcessBuilder. command) start waitFor)))
 
 (defn handle-edit [editor file]
-  (let [run (sh "bash" :in (bash (dots-script [file])))]
+  (let [run (sh "bash" :in (bash (dots-script (get-sources))))]
     (send-msg! editor (-> run :out parse pprint with-out-str))))
 
 (defn has-bin? [bin]
@@ -426,32 +449,29 @@
      [:trap (str "{ rm -r $" var "; }") 'EXIT]
      script]))
 
-(defn run-install [sources env]
+(defn run-install [env]
   (sh "bash"
-      :env (merge
-            {:SKIP_RESTARTS 1} env)
+      :env env
       :in (bash ((if (contains? env :HOME)
                    identity
-                   with-tmp-home) (dots-script sources)))))
+                   with-tmp-home) (dots-script (get-sources))))))
 
 (deftest install-known-host
-  (let [sources (get-sources)
-        process (run-install sources {:HOST "archy"})
+  (let [process (run-install {:HOST "red-machine"})
         output (-> process :out parse)]
     (is (= (:exit process) 0))
     (is (= (:dots/status output) :dots/success))
-    (is (= (:system/host-set? output) true))
-    (is (= (-> output :dots/files count) (count sources)))))
+    (is (= (:system/host-set? output) true))))
 
 (deftest install-unknown-host
-  (let [process (run-install [] {:HOST "unknown"})
+  (let [process (run-install {:HOST "unknown"})
         output (-> process :out parse)]
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/unknown-host))
     (is (= (:system/host-set? output) true))))
 
 (deftest install-unknown-home
-  (let [process (run-install [] {:HOME nil :HOST "archy"})
+  (let [process (run-install {:HOME nil :HOST "red-machine"})
         output (-> process :out parse)]
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/unknown-home))))
