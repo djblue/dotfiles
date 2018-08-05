@@ -203,21 +203,27 @@
           contents (render-string (dissoc ctx :dots/files)
                                   (slurp file))
           path (str "$HOME/" (if prefix? "." "") filename)]
+      ^:skip
       [:do
        (install-file contents path)
        (if exec? [:chmod "+x" path])])))
 
 (defn setup-bin [ctx]
-  (->> ["bin/dots" "bin/dots-reset"]
-       (map (install-dotfile ctx :prefix? false :exec? true))
-       (cons :do)))
+  ^:skip
+  [:do
+   (->> ["bin/dots" "bin/dots-reset"]
+        (map (install-dotfile ctx :prefix? false :exec? true))
+        (cons :do))])
 
 (defn setup-shell [ctx]
-  (->> ["aliases" "bashrc" "profile" "tmux.conf" "zshrc" "gitconfig"]
-       (map (install-dotfile ctx))
-       (cons :do)))
+  ^:skip
+  [:do
+   (->> ["aliases" "bashrc" "profile" "tmux.conf" "zshrc" "gitconfig"]
+        (map (install-dotfile ctx))
+        (cons :do))])
 
 (defn setup-vim [ctx]
+  ^:skip
   [:do
    (git-clone "https://github.com/VundleVim/Vundle.vim.git"
               "$HOME/.vim/bundle/Vundle.vim")
@@ -232,6 +238,7 @@
   (let [path "wallpaper/arch.svg"
         contents (->> path (get-file ctx) slurp svg->png)
         path (str "$HOME/" (str/replace path #"\.svg$" ".png"))]
+    ^:skip
     [:do
      (install-file contents path)
      (case (:system/platform ctx)
@@ -239,6 +246,7 @@
        nil)]))
 
 (defn setup-xmonad [ctx]
+  ^:skip
   [:do
    (->> ["xmonad/xmonad.hs"
          "xmonad/lib/XMonad/Layout/EqualSpacing.hs"
@@ -295,6 +303,15 @@
        (echo [:dots/status] :dots/unknown-host)
        [:exit 1]]]
      (echo [:dots/status] :dots/success)]))
+
+(defn diff-script [a b]
+  (cond
+    (-> a meta :skip)
+    (if (not= a b)
+      (diff-script (with-meta a {:skip false}) b))
+    (or (vector? a) (seq? a))
+    (map-indexed #(diff-script %2 (nth b %1)) a)
+    :else a))
 
 (defn hoist
   ([script]
@@ -389,8 +406,13 @@
                          (str ":echo \"" msg "\"<CR>")])]
     (.. (ProcessBuilder. command) start waitFor)))
 
-(defn handle-edit [editor file]
-  (let [run (sh "bash" :in (bash (dots-script (get-sources))))]
+(def dots-prev (atom nil))
+
+(defn handle-edit [editor _]
+  (let [dots-next (dots-script (get-sources))
+        diff (diff-script dots-next @dots-prev)
+        run (sh "bash" :in (bash diff))]
+    (reset! dots-prev dots-next)
     (send-msg! editor (-> run :out parse pprint with-out-str))))
 
 (defn has-bin? [bin]
@@ -404,6 +426,7 @@
 (defn edit-dots []
   (let [editor (if (has-bin? "mvim") ["mvim" "-f"] ["vim"])
         process (spawn editor)]
+    (reset! dots-prev (dots-script (get-sources)))
     (hawk/watch! [{:paths ["src"]
                    :filter hawk/file?
                    :handler #(handle-edit editor (:file %2))}])
