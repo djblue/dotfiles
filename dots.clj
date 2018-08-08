@@ -176,22 +176,49 @@
        (reduce
         (fn [acc [path value]] (assoc-in acc path value)) {})))
 
-(defn install-file [contents path]
-  (let [sha-1 (sha-1 contents) id (subs sha-1 0 7)]
+(declare bash)
+
+(def kv-path "$HOME/.dots")
+
+(defn kv-load []
+  [:if [:file kv-path] [:source kv-path]])
+
+(defn kv-get-in [ks]
+  [:ref (->> ks (map name) (str/join "_") (str "__kv_") symbol)])
+
+(defn kv-set-in [ks v]
+  (let [d [:def (->> ks (map name) (str/join "_") (str "__kv_") symbol)  v]
+        e (encode (str (bash d) "\n"))]
     [:do
-     (echo [:dots/files id :file/path] path)
-     (echo [:dots/files id :file/sha-1] sha-1)
-     [:mkdir "-p" [:eval [:dirname path]]]
-     [:touch path]
-     [:if [:not
-           [:equals [:eval
-                     [:pipe
-                      [:sha1sum path]
-                      [:cut "-d" " " "-f" 1]]] sha-1]]
+     d
+     [:append [:pipe [:echo e] [:base64 "--decode"]] kv-path]]))
+
+(defn kv-dump []
+  [:redirect [:pipe [:set] [:grep "^__kv_"]] kv-path])
+
+(defn install-file [contents path]
+  (let [id (-> path sha-1 (subs 0 7))
+        sha1 (sha-1 contents)]
+    [:do
+     [:if [:and
+           [:file path]
+           [:not [:equals [:eval
+                           [:pipe
+                            [:sha1sum path]
+                            [:cut "-d" " " "-f" 1]]]
+                  (kv-get-in [:dots :files id :sha1])]]]
+      [:do
+       (echo [:dots/dirty-file] path)
+       (echo [:dots/status] :dots/dirty)
+       [:exit 1]]]
+     [:do
+      [:mkdir "-p" [:eval [:dirname path]]]
       [:redirect [:pipe
-                  [:echo "-n" (encode contents)]
-                  [:base64 "--decode"]] path]
-      (echo [:dots/files id :file/skip-install?] true)]]))
+                  [:echo "-n" (encode contents)] [:base64 "--decode"]] path]
+      (echo [:dots/files id :file/path] path)
+      (echo [:dots/files id :file/sha1] sha1)
+      (kv-set-in [:dots :files id :sha1] sha1)
+      (kv-set-in [:dots :files id :path] path)]]))
 
 (defn get-file [ctx filename]
   (-> ctx :dots/files (get filename)))
@@ -265,10 +292,12 @@
   (let [ctx {:dots/files files}]
     [:do
      [:set "-e"]
+     (kv-load)
      [:if [:zero "$HOME"]
       [:do
        (echo [:dots/status] :dots/unknown-home)
-       [:exit 1]]]
+       [:exit 1]]
+      (echo [:system/home] "$HOME")]
      [:if [:zero "$HOST"]
       [:do
        [:def :HOST [:eval [:hostname]]]
@@ -302,6 +331,7 @@
       [:do
        (echo [:dots/status] :dots/unknown-host)
        [:exit 1]]]
+     (kv-dump)
      (echo [:dots/status] :dots/success)]))
 
 (defn diff-script [a b]
@@ -356,13 +386,16 @@
                                    (str "*)\n" c))))
                               (str/join "\n"))
                          "\nesac")
+        :and        (str/join " && " args)
         :not        (str "! " arg1)
         :dir        (str "-d " arg1)
+        :file       (str "-f " arg1)
         :zero       (str "-z " arg1)
         :eval       (str "$(" arg1 ")")
         :pipe       (str/join " | " args)
         :equals     (str arg1 " == " arg2)
         :redirect   (str arg1 " > " arg2)
+        :append     (str arg1 " >> " arg2)
         :def        (str (name arg1) "=" arg2)
         :ref        (str "$" arg1)
         (str (name op) " " (str/join " " args))))
@@ -472,12 +505,13 @@
      [:trap (str "{ rm -r $" var "; }") 'EXIT]
      script]))
 
-(defn run-install [env]
+(defn run-install [env & setup]
   (sh "bash"
       :env env
       :in (bash ((if (contains? env :HOME)
                    identity
-                   with-tmp-home) (dots-script (get-sources))))))
+                   with-tmp-home)
+                 [:do (cons :do setup) (dots-script (get-sources))]))))
 
 (deftest install-known-host
   (let [process (run-install {:HOST "red-machine"})
@@ -498,5 +532,15 @@
         output (-> process :out parse)]
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/unknown-home))))
+
+(deftest install-existing-file
+  (let [process (run-install {:HOST "red-machine"}
+                             [:do
+                              [:mkdir "-p" "$HOME/bin"]
+                              [:touch "$HOME/bin/dots"]])
+        output (-> process :out parse)]
+    (is (= (:exit process) 1))
+    (is (= (:dots/status output) :dots/dirty))
+    (is (str/ends-with? (:dots/dirty-file output) "bin/dots"))))
 
 (apply main *command-line-args*)
