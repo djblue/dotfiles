@@ -202,6 +202,7 @@
     [:do
      [:if [:and
            [:file path]
+           [:zero [:ref 'FORCE_INSTALL]]
            [:not [:equals [:eval
                            [:pipe
                             [:sha1sum path]
@@ -542,5 +543,15 @@
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/dirty))
     (is (str/ends-with? (:dots/dirty-file output) "bin/dots"))))
+
+(deftest install-force-install
+  (let [process (run-install {:HOST "red-machine"
+                              :FORCE_INSTALL 1}
+                             [:do
+                              [:mkdir "-p" "$HOME/bin"]
+                              [:touch "$HOME/bin/dots"]])
+        output (-> process :out parse)]
+    (is (= (:exit process) 0))
+    (is (= (:dots/status output) :dots/success))))
 
 (apply main *command-line-args*)
