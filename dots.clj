@@ -10,7 +10,6 @@
             [org.httpkit.server :as http]
             [digest :refer [sha-1]])
   (:import (java.util Base64)
-           (java.net InetAddress)
            (java.io StringReader ByteArrayOutputStream)
            (org.apache.batik.transcoder TranscoderInput TranscoderOutput)
            (org.apache.batik.transcoder.image PNGTranscoder)))
