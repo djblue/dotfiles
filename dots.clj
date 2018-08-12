@@ -159,14 +159,11 @@
 (defn echo [path value]
   [:do
    [:pipe
-    [:echo "-n" (encode (str path))]
+    [:printf (encode (str path))]
     [:base64 "--decode"]]
-   (cond
-     (string? value) [:do
-                      [:echo "-n" " \\\""]
-                      [:echo "-n" value]
-                      [:echo "\\\""]]
-     :else [:echo "" value])])
+   (if (string? value)
+     [:printf (str " \\\"" value "\\\"\n")]
+     [:printf (str " \"" value "\"\n")])])
 
 (defn parse [out]
   (->> (str "[" out "]")
@@ -214,7 +211,7 @@
      [:do
       [:mkdir "-p" [:eval [:dirname path]]]
       [:redirect [:pipe
-                  [:echo "-n" (encode contents)] [:base64 "--decode"]] path]
+                  [:printf (encode contents)] [:base64 "--decode"]] path]
       (echo [:dots/files id :file/path] path)
       (echo [:dots/files id :file/sha1] sha1)
       (kv-set-in [:dots :files id :sha1] sha1)
@@ -506,7 +503,7 @@
      script]))
 
 (defn run-install [env & setup]
-  (sh "bash"
+  (sh "sh"
       :env env
       :in (bash ((if (contains? env :HOME)
                    identity
