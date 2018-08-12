@@ -10,6 +10,7 @@
             [org.httpkit.server :as http]
             [digest :refer [sha-1]])
   (:import (java.util Base64)
+           (java.time Instant)
            (java.io StringReader ByteArrayOutputStream)
            (org.apache.batik.transcoder TranscoderInput TranscoderOutput)
            (org.apache.batik.transcoder.image PNGTranscoder)))
@@ -285,6 +286,16 @@
    [:xrdb "-merge" "$HOME/.Xdefaults"]
    (setup-wallpaper ctx)])
 
+(defn dump-info []
+  ^:skip
+  [:do
+   (echo [:dots/build-time] (str (Instant/now)))
+   (echo [:dots/install-time] "$(date -u +'%Y-%m-%dT%H:%M:%SZ')")
+   (echo [:system/shell] "$0")
+   (echo [:system/kernel-name] "$(uname -s)")
+   (echo [:system/kernel-release] "$(uname -r)")
+   (echo [:system/machine] "$(uname -m)")])
+
 (defn dots-script [files]
   (let [ctx {:dots/files files}]
     [:do
@@ -301,6 +312,7 @@
        (echo [:system/host-set?] false)]
       (echo [:system/host-set?] true)]
      (echo [:system/host] "$HOST")
+     (dump-info)
      [:case "$HOST"
       "red-machine"
       (let [ctx (merge ctx
