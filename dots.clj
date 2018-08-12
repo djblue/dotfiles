@@ -535,7 +535,7 @@
      script]))
 
 (defn run-install [env & setup]
-  (sh "sh"
+  (sh "bash"
       :env env
       :in (bash ((if (contains? env :HOME)
                    identity
