@@ -506,6 +506,26 @@
                               (exit 0)))
       :else               (edit-dots))))
 
+(defn deploy-host!
+  ([host script] (deploy-host! host {} script))
+  ([host env script]
+   (let [env (->> env
+                  (map (fn [[k v]]
+                         [:def (symbol (name k)) v]))
+                  (cons :do))
+         script [:do (if (zero? (count env)) nil env) script]]
+     (->> (bash script)
+          (sh "ssh" (name host) :in) :out parse))))
+
+(defn deploy-all! []
+  (let [script (hoist (dots-script (get-sources)))]
+    (->> [:mac :red]
+         (map #(-> [% (deploy-host! % script)]))
+         (into {})
+         pprint)))
+
+(comment (deploy-all!))
+
 (defn with-tmp-home [script]
   (let [var (gensym)]
     [:do
