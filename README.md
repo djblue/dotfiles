@@ -9,7 +9,7 @@ my system defaults.
 
 To install the dotfiles, do:
 
-    curl -sL https://git.io/vxQ4g | bash
+    curl -sL https://git.io/vxQ4g | sh
 
 ## License
 
