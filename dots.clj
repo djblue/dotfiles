@@ -286,10 +286,17 @@
    [:xrdb "-merge" "$HOME/.Xdefaults"]
    (setup-wallpaper ctx)])
 
+(defn set-path [& paths]
+  [:do
+   [:def :PATH ""]
+   (->> paths
+        (map #(-> [:if [:dir %] [:def :PATH (str % ":$PATH")]]))
+        (cons :do))
+   (echo [:system/path] "$PATH")])
+
 (defn dump-info []
   ^:skip
   [:do
-   (echo [:dots/build-time] (str (Instant/now)))
    (echo [:dots/install-time] "$(date -u +'%Y-%m-%dT%H:%M:%SZ')")
    (echo [:system/shell] "$0")
    (echo [:system/kernel-name] "$(uname -s)")
@@ -312,6 +319,12 @@
        (echo [:system/host-set?] false)]
       (echo [:system/host-set?] true)]
      (echo [:system/host] "$HOST")
+     (set-path "/bin"
+               "/sbin"
+               "/usr/bin"
+               "/usr/local/bin"
+               "/usr/local/sbin"
+               "/usr/sbin")
      (dump-info)
      [:case "$HOST"
       "red-machine"
