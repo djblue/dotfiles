@@ -7,6 +7,7 @@ import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.SetWMName
 import XMonad.Layout.EqualSpacing
+import XMonad.Layout.NoBorders
 import XMonad.Util.EZConfig(additionalKeys)
 import XMonad.Util.Paste
 import XMonad.Util.Run(spawnPipe)
@@ -24,7 +25,7 @@ main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
 
     -- topbar padding
     , manageHook = manageDocks <+> manageHook baseConfig
-    , layoutHook = avoidStruts $ equalSpacing 16 0 0 0 $ layoutHook baseConfig
+    , layoutHook = smartBorders $ avoidStruts $ equalSpacing 16 0 0 0 $ layoutHook baseConfig
     , handleEventHook = docksEventHook <+> handleEventHook baseConfig <+> fullscreenEventHook
 
     } `additionalKeys`
