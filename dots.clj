@@ -1,6 +1,5 @@
 (ns dots
-  (:require [clojure.tools.cli :refer [parse-opts]]
-            [clojure.tools.nrepl.server :as nrepl]
+  (:require [clojure.tools.nrepl.server :as nrepl]
             [clojure.pprint :refer [pprint]]
             [clojure.string :as str]
             [clojure.java.io :as io]
@@ -430,10 +429,6 @@
         (str (name op) " " (str/join " " args))))
     :else script))
 
-(defn exit [code & msg]
-  (apply println msg)
-  (System/exit code))
-
 (def cwd (.toPath (.getAbsoluteFile (io/file "src"))))
 
 (defn get-relative-name [file]
@@ -493,37 +488,18 @@
                    :handler #(handle-edit editor (:file %2))}])
     (->> (nrepl/start-server) :port (spit ".nrepl-port"))
     (http/run-server #(app %) {:host "0.0.0.0" :port 8080})
-    (exit (.waitFor process))))
-
-(def cli-options
-  [["-s" "--script" "only output script"]
-   ["-h" "--help" "output usage information"]])
-
-(defn help [options]
-  (->> ["Edit my dotfiles."
-        ""
-        "Usage: dots [options]"
-        ""
-        "Options:"
-        ""
-        options
-        ""]
-       (str/join \newline)))
+    (.waitFor process)))
 
 (defn -main [& args]
-  (let [{:keys [options arguments errors summary]}
-        (parse-opts args cli-options)]
-    (cond
-      (:help options)     (exit 0 (help summary))
-      errors              (exit 1 (str (first errors) "\nSee \"dots --help\""))
-      (:script options)   (do
-                            (let [results (binding [t/*test-out* *err*]
-                                            (t/with-test-out (t/run-tests *ns*)))]
-                              (if-not (= (+ (:fail results) (:error results)) 0)
-                                (exit 1)
-                                (println (bash (hoist (dots-script (get-sources))))))
-                              (exit 0)))
-      :else               (edit-dots))))
+  (case (first args)
+    "test"
+    (let [results (binding [t/*test-out* *err*]
+                    (t/with-test-out (t/run-tests 'dots)))]
+      (if-not (zero? (+ (:fail results) (:error results)))
+        (System/exit 1)
+        (println (bash (hoist (dots-script (get-sources)))))))
+    (edit-dots))
+  (System/exit 0))
 
 (defn deploy-host!
   ([host script] (deploy-host! host {} script))
