@@ -447,17 +447,15 @@
 
 (defn spawn [editor]
   (let [runtime (Runtime/getRuntime)
-        command (concat editor ["--servername" "dots" "dots.clj"])
+        command (concat editor ["dots.clj"])
         process (.. (ProcessBuilder. command) inheritIO start)]
     (.addShutdownHook runtime (Thread. #(.destroy process)))
     process))
 
 (defn send-msg! [editor msg]
   (let [msg (-> msg str/trim (str/escape {\" "\\\"" \newline "\\n"}))
-        command (concat [(first editor)]
-                        ["--servername"
-                         "dots"
-                         "--remote-send"
+        command (concat editor
+                        ["--remote-send"
                          (str ":echo \"" msg "\"<CR>")])]
     (.. (ProcessBuilder. command) start waitFor)))
 
@@ -477,7 +475,9 @@
        (some #(and (= (.getName %) bin) (.canExecute %)))))
 
 (defn edit-dots []
-  (let [editor (if (has-bin? "mvim") ["mvim" "-f"] ["vim"])
+  (let [editor (if (has-bin? "mvim")
+                 ["mvim" "-f" "--servername" "dots"]
+                 ["vim" "--servername" "dots"])
         process (spawn editor)]
     (reset! dots-prev (dots-script (get-sources)))
     (hawk/watch! [{:paths ["src"]
