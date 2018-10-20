@@ -465,7 +465,8 @@
   (let [dots-next (dots-script (get-sources))
         diff (diff-script dots-next @dots-prev)
         run (sh "bash" :in (bash diff))]
-    (reset! dots-prev dots-next)
+    (when (zero? (:exit run))
+      (reset! dots-prev dots-next))
     (send-msg! editor (-> run :out parse pprint with-out-str))))
 
 (defn has-bin? [bin]
