@@ -471,12 +471,10 @@
     (send-msg! editor (-> run :out parse pprint with-out-str))))
 
 (defn has-bin? [bin]
-  (let [file (->> (str/split (System/getenv "PATH") #":")
-                  (map io/file)
-                  (mapcat file-seq)
-                  (filter #(= (.getName %) bin))
-                  first)]
-    (and (some? file) (.canExecute file))))
+  (->> (s/split (System/getenv "PATH") #":")
+       (map io/file)
+       (mapcat file-seq)
+       (some #(and (= (.getName %) bin) (.canExecute %)))))
 
 (defn edit-dots []
   (let [editor (if (has-bin? "mvim") ["mvim" "-f"] ["vim"])
