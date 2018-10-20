@@ -471,7 +471,7 @@
     (send-msg! editor (-> run :out parse pprint with-out-str))))
 
 (defn has-bin? [bin]
-  (->> (s/split (System/getenv "PATH") #":")
+  (->> (str/split (System/getenv "PATH") #":")
        (map io/file)
        (mapcat file-seq)
        (some #(and (= (.getName %) bin) (.canExecute %)))))
