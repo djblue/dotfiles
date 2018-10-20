@@ -27,6 +27,7 @@ Plugin 'jpalardy/vim-slime'
 Plugin 'luochen1990/rainbow'
 Plugin 'vim-scripts/paredit.vim'
 Plugin 'tpope/vim-fireplace'
+Plugin 'ervandew/supertab'
 Plugin 'venantius/vim-cljfmt'
 Plugin '{{:theme/vim-plugin}}'
 
@@ -34,6 +35,7 @@ Plugin '{{:theme/vim-plugin}}'
 call vundle#end()            " required
 filetype plugin indent on    " required
 set omnifunc=syntaxcomplete#Complete
+let g:SuperTabDefaultCompletionType = "<C-X><C-O>"
 
 set updatetime=100
 
