@@ -195,7 +195,8 @@
 
 (defn install-file [contents path]
   (let [id (-> path sha-1 (subs 0 7))
-        sha1 (sha-1 contents)]
+        sha1 (sha-1 contents)
+        contents (encode contents)]
     [:do
      [:if [:and
            [:file path]
@@ -208,15 +209,20 @@
       [:do
        (echo [:dots/dirty-file] path)
        (echo [:dots/status] :dots/dirty)
+       [:pipe
+        [:echo (kv-get-in [:dots :files id :contents])]
+        [:base64 "--decode"]
+        [:diff "-u" "-" path [:bash "1>&2"]]]
        [:exit 1]]]
      [:do
       [:mkdir "-p" [:eval [:dirname path]]]
       [:redirect [:pipe
-                  [:printf (encode contents)] [:base64 "--decode"]] path]
+                  [:printf contents] [:base64 "--decode"]] path]
       (echo [:dots/files id :file/path] path)
       (echo [:dots/files id :file/sha1] sha1)
       (kv-set-in [:dots :files id :sha1] sha1)
-      (kv-set-in [:dots :files id :path] path)]]))
+      (kv-set-in [:dots :files id :path] path)
+      (kv-set-in [:dots :files id :contents] contents)]]))
 
 (defn get-file [ctx filename]
   (-> ctx :dots/files (get filename)))
@@ -420,6 +426,7 @@
         :append     (str arg1 " >> " arg2)
         :def        (str (name arg1) "=" arg2)
         :ref        (str "$" arg1)
+        :bash       (second script)
         (str (name op) " " (str/join " " args))))
     :else script))
 
