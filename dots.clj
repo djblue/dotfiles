@@ -1,4 +1,4 @@
-(ns dots.core
+(ns dots
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.nrepl.server :as nrepl]
             [clojure.pprint :refer [pprint]]
@@ -502,7 +502,7 @@
         ""]
        (str/join \newline)))
 
-(defn main [& args]
+(defn -main [& args]
   (let [{:keys [options arguments errors summary]}
         (parse-opts args cli-options)]
     (cond
@@ -592,5 +592,3 @@
         output (-> process :out parse)]
     (is (= (:exit process) 0))
     (is (= (:dots/status output) :dots/success))))
-
-(apply main *command-line-args*)

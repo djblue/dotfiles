@@ -11,6 +11,12 @@ To install the dotfiles, do:
 
     curl -sL https://git.io/vxQ4g | sh
 
+## Dev
+
+To start development, do:
+
+    clojure -Adots
+
 ## License
 
 Copyright (c) 2018 Chris Badahdah
