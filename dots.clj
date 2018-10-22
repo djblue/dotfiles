@@ -240,7 +240,7 @@
 (defn setup-bin [ctx]
   ^:skip
   [:do
-   (->> ["bin/dots" "bin/dots-reset" "bin/vim"]
+   (->> ["bin/dots" "bin/dots-reset" "bin/vim-wrap"]
         (map (install-dotfile ctx :prefix? false :exec? true))
         (cons :do))])
 
@@ -458,16 +458,8 @@
       (reset! dots-prev dots-next))
     (send-msg! editor (-> run :out parse pprint with-out-str))))
 
-(defn has-bin? [bin]
-  (->> (str/split (System/getenv "PATH") #":")
-       (map io/file)
-       (mapcat file-seq)
-       (some #(and (= (.getName %) bin) (.canExecute %)))))
-
 (defn edit-dots []
-  (let [editor (if (has-bin? "mvim")
-                 ["mvim" "-f" "--servername" "dots"]
-                 ["/usr/bin/vim" "--servername" "dots"])]
+  (let [editor ["vim" "--servername" "dots"]]
     (reset! dots-prev (dots-script (get-sources)))
     (hawk/watch! {:watcher :polling}
                  [{:paths ["src"]
@@ -480,9 +472,9 @@
     "server" (edit-dots)
     "test"
     (let [results (t/run-tests 'dots)]
-        (shutdown-agents)
-        (when-not (zero? (+ (:fail results) (:error results)))
-          (System/exit 1)))
+      (shutdown-agents)
+      (when-not (zero? (+ (:fail results) (:error results)))
+        (System/exit 1)))
     (println (bash (hoist (dots-script (get-sources)))))))
 
 (defn deploy-host!

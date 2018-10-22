@@ -1,7 +1,6 @@
 #!/bin/bash
 
 root="$HOME/repos/dotfiles"
-vim=/usr/bin/vim
 
 parse-args() {
   local found=0
@@ -24,8 +23,8 @@ if [ "$?" == "1" ]; then
   trap "exit" INT TERM
   trap "kill 0" EXIT
   clojure -Aserver > server.log 2>&1 &
-  $vim --servername dots $args
+  vim --servername dots $args
 else
-  $vim $args
+  vim $@
 fi
 

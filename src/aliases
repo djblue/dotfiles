@@ -28,9 +28,10 @@ alias la='ls -A'
 alias l='ls -CF'
 
 # vim
-alias vi='vim'
-alias svi='sudo -E vim'
-alias vimrc='vim ~/.vimrc'
+alias vi='vim-wrap'
+alias vim='vim-wrap'
+alias svi='sudo -E vim-wrap'
+alias vimrc='vim-wrap ~/.vimrc'
 
 # grep
 alias grep='grep --color=auto'
