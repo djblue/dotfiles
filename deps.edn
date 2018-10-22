@@ -6,7 +6,8 @@
   org.apache.xmlgraphics/batik-codec {:mvn/version "1.9"}
   org.apache.xmlgraphics/batik-transcoder {:mvn/version "1.9"}}
  :aliases
- {:test {:main-opts ["-m" "dots" "test"]}
-  :dots {:main-opts  ["-m" "dots"]
-         :extra-deps
-         {cljfmt {:mvn/version "0.5.7"}}}}}
+ {:dots {:main-opts ["-m" "dots"]}
+  :test {:main-opts ["-m" "dots" "test"]}
+  :server {:main-opts  ["-m" "dots" "server"]
+           :extra-deps
+           {cljfmt {:mvn/version "0.5.7"}}}}}

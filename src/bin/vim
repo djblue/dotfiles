@@ -23,7 +23,7 @@ if [ "$?" == "1" ]; then
   cd $root
   trap "exit" INT TERM
   trap "kill 0" EXIT
-  clojure -Adots > server.log 2>&1 &
+  clojure -Aserver > server.log 2>&1 &
   $vim --servername dots $args
 else
   $vim $args

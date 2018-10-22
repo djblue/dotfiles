@@ -477,15 +477,13 @@
 
 (defn -main [& args]
   (case (first args)
+    "server" (edit-dots)
     "test"
-    (let [results (binding [t/*test-out* *err*]
-                    (t/with-test-out (t/run-tests 'dots)))]
-      (if-not (zero? (+ (:fail results) (:error results)))
-        (System/exit 1)
-        (do
-          (println (bash (hoist (dots-script (get-sources)))))
-          (System/exit 0))))
-    (edit-dots)))
+    (let [results (t/run-tests 'dots)]
+        (shutdown-agents)
+        (when-not (zero? (+ (:fail results) (:error results)))
+          (System/exit 1)))
+    (println (bash (hoist (dots-script (get-sources)))))))
 
 (defn deploy-host!
   ([host script] (deploy-host! host {} script))
