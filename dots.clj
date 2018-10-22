@@ -6,7 +6,6 @@
             [clojure.java.shell :refer [sh]]
             [clojure.test :refer [is deftest] :as t]
             [hawk.core :as hawk]
-            [org.httpkit.server :as http]
             [digest :refer [sha-1]])
   (:import (java.util Base64)
            (java.time Instant)
@@ -241,7 +240,7 @@
 (defn setup-bin [ctx]
   ^:skip
   [:do
-   (->> ["bin/dots" "bin/dots-reset"]
+   (->> ["bin/dots" "bin/dots-reset" "bin/vim"]
         (map (install-dotfile ctx :prefix? false :exec? true))
         (cons :do))])
 
@@ -442,18 +441,6 @@
        (map #(-> [(get-relative-name %) %]))
        (into {})))
 
-(defn app [req]
-  {:statue 200
-   :headers {"Content-Type" "text/plain"}
-   :body (bash (hoist (dots-script (get-sources))))})
-
-(defn spawn [editor]
-  (let [runtime (Runtime/getRuntime)
-        command (concat editor ["dots.clj"])
-        process (.. (ProcessBuilder. command) inheritIO start)]
-    (.addShutdownHook runtime (Thread. #(.destroy process)))
-    process))
-
 (defn send-msg! [editor msg]
   (let [msg (-> msg str/trim (str/escape {\" "\\\"" \newline "\\n"}))
         command (concat editor
@@ -480,15 +467,13 @@
 (defn edit-dots []
   (let [editor (if (has-bin? "mvim")
                  ["mvim" "-f" "--servername" "dots"]
-                 ["vim" "--servername" "dots"])
-        process (spawn editor)]
+                 ["/usr/bin/vim" "--servername" "dots"])]
     (reset! dots-prev (dots-script (get-sources)))
-    (hawk/watch! [{:paths ["src"]
+    (hawk/watch! {:watcher :polling}
+                 [{:paths ["src"]
                    :filter hawk/file?
                    :handler #(handle-edit editor (:file %2))}])
-    (->> (nrepl/start-server) :port (spit ".nrepl-port"))
-    (http/run-server #(app %) {:host "0.0.0.0" :port 8080})
-    (.waitFor process)))
+    (->> (nrepl/start-server) :port (spit ".nrepl-port"))))
 
 (defn -main [& args]
   (case (first args)
@@ -497,9 +482,10 @@
                     (t/with-test-out (t/run-tests 'dots)))]
       (if-not (zero? (+ (:fail results) (:error results)))
         (System/exit 1)
-        (println (bash (hoist (dots-script (get-sources)))))))
-    (edit-dots))
-  (System/exit 0))
+        (do
+          (println (bash (hoist (dots-script (get-sources)))))
+          (System/exit 0))))
+    (edit-dots)))
 
 (defn deploy-host!
   ([host script] (deploy-host! host {} script))
