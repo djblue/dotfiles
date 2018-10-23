@@ -228,31 +228,27 @@
 (defn install-dotfile [ctx & {:keys [prefix? exec?]
                               :or {prefix? true exec? false}}]
   (fn [filename]
-    (let [file (get-file ctx filename)
-          contents (render-string (dissoc ctx :dots/files)
-                                  (slurp file))
-          path (str "$HOME/" (if prefix? "." "") filename)]
-      ^:skip
-      [:do
-       (install-file contents path)
-       (if exec? [:chmod "+x" path])])))
+    (when-let [file (get-file ctx filename)]
+      (let [contents (render-string (dissoc ctx :dots/files)
+                                    (slurp file))
+            path (str "$HOME/" (if prefix? "." "") filename)]
+        [:do
+         (install-file contents path)
+         (if exec? [:chmod "+x" path])]))))
 
 (defn setup-bin [ctx]
-  ^:skip
   [:do
    (->> ["bin/dots" "bin/dots-reset" "bin/vim-wrap"]
         (map (install-dotfile ctx :prefix? false :exec? true))
         (cons :do))])
 
 (defn setup-shell [ctx]
-  ^:skip
   [:do
    (->> ["aliases" "bashrc" "profile" "tmux.conf" "zshrc" "gitconfig"]
         (map (install-dotfile ctx))
         (cons :do))])
 
 (defn setup-vim [ctx]
-  ^:skip
   [:do
    (git-clone "https://github.com/VundleVim/Vundle.vim.git"
               "$HOME/.vim/bundle/Vundle.vim")
@@ -264,18 +260,16 @@
   [:do (setup-bin ctx) (setup-shell ctx) (setup-vim ctx)])
 
 (defn setup-wallpaper [ctx]
-  (let [path "wallpaper/arch.svg"
-        contents (->> path (get-file ctx) slurp svg->png)
-        path (str "$HOME/" (str/replace path #"\.svg$" ".png"))]
-    ^:skip
-    [:do
-     (install-file contents path)
-     (case (:system/platform ctx)
-       :linux [:feh "--bg-fill" path]
-       nil)]))
+  (when-let  [file (get-file ctx "wallpaper/arch.svg")]
+    (let [contents (->> file slurp svg->png)
+          path (str "$HOME/wallpaper/arch.png")]
+      [:do
+       (install-file contents path)
+       (case (:system/platform ctx)
+         :linux [:feh "--bg-fill" path]
+         nil)])))
 
 (defn setup-xmonad [ctx]
-  ^:skip
   [:do
    (->> ["xmonad/xmonad.hs"
          "xmonad/lib/XMonad/Layout/EqualSpacing.hs"
@@ -299,7 +293,6 @@
    (echo [:system/path] "$PATH")])
 
 (defn dump-info []
-  ^:skip
   [:do
    (echo [:dots/install-time] "$(date -u +'%Y-%m-%dT%H:%M:%SZ')")
    (echo [:system/shell] "$0")
@@ -359,15 +352,6 @@
        [:exit 1]]]
      (kv-dump)
      (echo [:dots/status] :dots/success)]))
-
-(defn diff-script [a b]
-  (cond
-    (-> a meta :skip)
-    (if (not= a b)
-      (diff-script (with-meta a {:skip false}) b))
-    (or (vector? a) (seq? a))
-    (map-indexed #(diff-script %2 (nth b %1)) a)
-    :else a))
 
 (defn hoist
   ([script]
@@ -433,13 +417,17 @@
 (defn get-relative-name [file]
   (.toString (.relativize cwd (.toPath (.getAbsoluteFile file)))))
 
-(defn get-sources []
-  (->> "src/"
-       io/file
-       file-seq
-       (filter #(.isFile %))
-       (map #(-> [(get-relative-name %) %]))
-       (into {})))
+(defn get-sources
+  ([]
+   (->> "src/"
+        io/file
+        file-seq
+        (filter #(.isFile %))
+        get-sources))
+  ([files]
+   (->> files
+        (map #(-> [(get-relative-name %) %]))
+        (into {}))))
 
 (defn send-msg! [editor msg]
   (let [msg (-> msg str/trim (str/escape {\" "\\\"" \newline "\\n"}))
@@ -448,24 +436,29 @@
                          (str ":echo \"" msg "\"<CR>")])]
     (.. (ProcessBuilder. command) start waitFor)))
 
-(def dots-prev (atom nil))
-
-(defn handle-edit [editor _]
-  (let [dots-next (dots-script (get-sources))
-        diff (diff-script dots-next @dots-prev)
-        run (sh "bash" :in (bash diff))]
-    (when (zero? (:exit run))
-      (reset! dots-prev dots-next))
-    (send-msg! editor (-> run :out parse pprint with-out-str))))
+(defn handle-edit [editor file]
+  (let [dots (dots-script (get-sources [file]))
+        run (sh "bash" :in (bash dots))
+        result (->> run :out parse)]
+    (send-msg!
+     editor
+     (if (zero? (:exit run))
+       (->> result
+            :dots/files
+            (map #(str "Updated `" (-> % second :file/path) "` successfully!"))
+            (str/join "\n"))
+       (str
+        (->> result pprint with-out-str)
+        (:err run))))))
 
 (defn edit-dots []
   (let [editor ["vim" "--servername" "dots"]]
-    (reset! dots-prev (dots-script (get-sources)))
     (hawk/watch! {:watcher :polling}
                  [{:paths ["src"]
                    :filter hawk/file?
                    :handler #(handle-edit editor (:file %2))}])
-    (->> (nrepl/start-server) :port (spit ".nrepl-port"))))
+    (->> (nrepl/start-server) :port (spit ".nrepl-port"))
+    (send-msg! editor "Started dev server successfully!")))
 
 (defn -main [& args]
   (case (first args)
