@@ -326,12 +326,7 @@
                "/usr/sbin")
      (dump-info)
      [:case "$HOST"
-      "red-machine"
-      (let [ctx (merge ctx
-                       (get-config db :nord [:default]))]
-        [:do
-         (setup-cli ctx)])
-      "archy"
+      [:bash "red-machine|archy"]
       (let [ctx (merge ctx
                        (get-config db :nord [:default]))]
         [:do
@@ -343,7 +338,7 @@
         [:do
          (setup-cli ctx)
          (setup-xmonad ctx)])
-      "badahdah"
+      [:bash "badahdah|badahdah.local"]
       (let [ctx (merge ctx
                        (get-config db :nord [:default]))]
         [:do
@@ -507,7 +502,7 @@
                  [:do (cons :do setup) (dots-script (get-sources))]))))
 
 (deftest install-known-host
-  (let [process (run-install {:HOST "red-machine"})
+  (let [process (run-install {:HOST "badahdah"})
         output (-> process :out parse)]
     (is (= (:exit process) 0))
     (is (= (:dots/status output) :dots/success))
@@ -521,13 +516,13 @@
     (is (= (:system/host-set? output) true))))
 
 (deftest install-unknown-home
-  (let [process (run-install {:HOME nil :HOST "red-machine"})
+  (let [process (run-install {:HOME nil :HOST "badahdah"})
         output (-> process :out parse)]
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/unknown-home))))
 
 (deftest install-existing-file
-  (let [process (run-install {:HOST "red-machine"}
+  (let [process (run-install {:HOST "badahdah"}
                              [:do
                               [:mkdir "-p" "$HOME/bin"]
                               [:touch "$HOME/bin/vim-wrap"]])
@@ -537,7 +532,7 @@
     (is (str/ends-with? (:dots/dirty-file output) "bin/vim-wrap"))))
 
 (deftest install-force-install
-  (let [process (run-install {:HOST "red-machine"
+  (let [process (run-install {:HOST "badahdah"
                               :FORCE_INSTALL 1}
                              [:do
                               [:mkdir "-p" "$HOME/bin"]
