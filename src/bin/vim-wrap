@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if ! [ -x "$(command -v nvim)" ]; then
+  vim $@
+  exit $?
+fi
+
 root="$HOME/repos/dotfiles"
 
 parse-args() {
@@ -23,7 +28,7 @@ if [ "$?" == "1" ]; then
   trap "exit" INT TERM
   trap "kill 0" EXIT
   clojure -Aserver > server.log 2>&1 &
-  vim --servername dots $args
+  NVIM_LISTEN_ADDRESS=127.0.0.1:7777 nvim $args
 else
   vim $@
 fi

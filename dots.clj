@@ -6,6 +6,8 @@
             [clojure.java.shell :refer [sh]]
             [clojure.test :refer [is deftest] :as t]
             [hawk.core :as hawk]
+            [neovim-client.1.api :as api]
+            [neovim-client.nvim :as nvim]
             [digest :refer [sha-1]])
   (:import (java.util Base64)
            (java.time Instant)
@@ -429,19 +431,17 @@
         (map #(-> [(get-relative-name %) %]))
         (into {}))))
 
-(defn send-msg! [editor msg]
+(defn send-msg! [nvim msg]
   (let [msg (-> msg str/trim (str/escape {\" "\\\"" \newline "\\n"}))
-        command (concat editor
-                        ["--remote-send"
-                         (str ":echo \"" msg "\"<CR>")])]
-    (.. (ProcessBuilder. command) start waitFor)))
+        command (str ":echo \"" msg "\"")]
+    (api/command nvim command)))
 
-(defn handle-edit [editor file]
+(defn handle-edit [nvim file]
   (let [dots (dots-script (get-sources [file]))
         run (sh "bash" :in (bash dots))
         result (->> run :out parse)]
     (send-msg!
-     editor
+     nvim
      (if (zero? (:exit run))
        (->> result
             :dots/files
@@ -452,13 +452,13 @@
         (:err run))))))
 
 (defn edit-dots []
-  (let [editor ["vim" "--servername" "dots"]]
+  (let [nvim (nvim/new 1 "127.0.0.1" 7777)]
     (hawk/watch! {:watcher :polling}
                  [{:paths ["src"]
                    :filter hawk/file?
-                   :handler #(handle-edit editor (:file %2))}])
+                   :handler #(handle-edit nvim (:file %2))}])
     (->> (nrepl/start-server) :port (spit ".nrepl-port"))
-    (send-msg! editor "Started dev server successfully!")))
+    (send-msg! nvim "Started dev server successfully!")))
 
 (defn -main [& args]
   (case (first args)
