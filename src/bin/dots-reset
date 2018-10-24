@@ -1,9 +1,0 @@
-#!/bin/bash
-
-curl -sL https://git.io/vxQ4g | bash
-
-if [[ ${PIPESTATUS[1]} -eq 0 ]]; then
-   notify-send 'dots' 'successfully reset dotfiles'
- else
-   notify-send --urgency=critical 'dots' 'failed to reset dotfiles'
-fi

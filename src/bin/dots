@@ -1,9 +1,0 @@
-#!/bin/bash
-
-cd $HOME/repos/dotfiles
-
-if [ -t 0 ]; then
-  clojure $HOME/repos/dotfiles/dots.clj $@
-else
-  RUN="$0" urxvt -e zsh
-fi

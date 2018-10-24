@@ -240,7 +240,7 @@
 
 (defn setup-bin [ctx]
   [:do
-   (->> ["bin/dots" "bin/dots-reset" "bin/vim-wrap"]
+   (->> ["bin/vim-wrap"]
         (map (install-dotfile ctx :prefix? false :exec? true))
         (cons :do))])
 
@@ -530,18 +530,18 @@
   (let [process (run-install {:HOST "red-machine"}
                              [:do
                               [:mkdir "-p" "$HOME/bin"]
-                              [:touch "$HOME/bin/dots"]])
+                              [:touch "$HOME/bin/vim-wrap"]])
         output (-> process :out parse)]
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/dirty))
-    (is (str/ends-with? (:dots/dirty-file output) "bin/dots"))))
+    (is (str/ends-with? (:dots/dirty-file output) "bin/vim-wrap"))))
 
 (deftest install-force-install
   (let [process (run-install {:HOST "red-machine"
                               :FORCE_INSTALL 1}
                              [:do
                               [:mkdir "-p" "$HOME/bin"]
-                              [:touch "$HOME/bin/dots"]])
+                              [:touch "$HOME/bin/vim-wrap"]])
         output (-> process :out parse)]
     (is (= (:exit process) 0))
     (is (= (:dots/status output) :dots/success))))

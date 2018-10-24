@@ -55,8 +55,6 @@ main = xmonad =<< statusBar "xmobar" myPP toggleStructsKey (baseConfig
     ,	((mod1Mask, xK_z), spawn $ menu "passmenu")
 
     , ((mod4Mask, xK_l), spawn "slock")
-    , ((mod4Mask, xK_d), spawn "dots")
-    , ((mod4Mask, xK_r), spawn "dots-reset")
 
     , ((mod4Mask, xK_j), spawn "jack-in")
     , ((mod4Mask, xK_m), spawn "go-mobile")
