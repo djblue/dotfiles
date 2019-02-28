@@ -338,7 +338,7 @@
         [:do
          (setup-cli ctx)
          (setup-xmonad ctx)])
-      [:bash "badahdah|badahdah.local"]
+      [:bash "archlinux"]
       (let [ctx (merge ctx
                        (get-config db :nord [:default]))]
         [:do
