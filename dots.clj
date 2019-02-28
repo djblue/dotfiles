@@ -502,7 +502,7 @@
                  [:do (cons :do setup) (dots-script (get-sources))]))))
 
 (deftest install-known-host
-  (let [process (run-install {:HOST "badahdah"})
+  (let [process (run-install {:HOST "archlinux"})
         output (-> process :out parse)]
     (is (= (:exit process) 0))
     (is (= (:dots/status output) :dots/success))
@@ -516,13 +516,13 @@
     (is (= (:system/host-set? output) true))))
 
 (deftest install-unknown-home
-  (let [process (run-install {:HOME nil :HOST "badahdah"})
+  (let [process (run-install {:HOME nil :HOST "archlinux"})
         output (-> process :out parse)]
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/unknown-home))))
 
 (deftest install-existing-file
-  (let [process (run-install {:HOST "badahdah"}
+  (let [process (run-install {:HOST "archlinux"}
                              [:do
                               [:mkdir "-p" "$HOME/bin"]
                               [:touch "$HOME/bin/vim-wrap"]])
@@ -532,7 +532,7 @@
     (is (str/ends-with? (:dots/dirty-file output) "bin/vim-wrap"))))
 
 (deftest install-force-install
-  (let [process (run-install {:HOST "badahdah"
+  (let [process (run-install {:HOST "archlinux"
                               :FORCE_INSTALL 1}
                              [:do
                               [:mkdir "-p" "$HOME/bin"]
