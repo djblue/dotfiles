@@ -254,7 +254,7 @@
   [:do
    (git-clone "https://github.com/VundleVim/Vundle.vim.git"
               "$HOME/.vim/bundle/Vundle.vim")
-   (->> ["gvimrc" "ideavimrc" "vimrc"]
+   (->> ["gvimrc" "ideavimrc" "vimrc" "config/nvim/init.vim"]
         (map (install-dotfile ctx))
         (cons :do))])
 
