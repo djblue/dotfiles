@@ -15,7 +15,7 @@ To install the dotfiles, do:
 
 To start development, do:
 
-    clojure -Adots
+    ./start
 
 ## License
 
