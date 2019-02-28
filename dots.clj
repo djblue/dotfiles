@@ -160,11 +160,11 @@
 (defn echo [path value]
   [:do
    [:pipe
-    [:printf (encode (str path))]
+    [:printf (encode (str path " "))]
     [:base64 "--decode"]]
    (if (string? value)
-     [:printf (str " \\\"" value "\\\"\n")]
-     [:printf (str " \"" value "\"\n")])])
+     [:echo (str "\\\"" value "\\\"")]
+     [:echo (str value)])])
 
 (defn parse [out]
   (->> (str "[" out "]")
