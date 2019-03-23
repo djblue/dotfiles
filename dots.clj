@@ -156,9 +156,7 @@
        (str
         (cond
           (keyword? expr) (expr config)
-          (vector? expr)  (get-in config expr)
-          (list? expr)    (eval
-                           `(let [~'config ~config] ~expr))))))))
+          (vector? expr)  (get-in config expr)))))))
 
 (def svg->png
   (memoize
