@@ -34,10 +34,12 @@
      :theme/font-size 18
      :theme/font-name "Inconsolata"
      :theme/font-alt "Inconsolata for Powerline"
+     :xmobar/height 32
      :xmobar/template (xmobar #{:system/has-sound?})}
     :hidpi
     {:theme/dpi 196
-     :theme/font-size 38}
+     :theme/font-size 38
+     :xmobar/height 64}
     :laptop
     {:xmobar/template
      (xmobar #{:system/has-sound?

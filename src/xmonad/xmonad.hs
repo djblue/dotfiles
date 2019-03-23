@@ -66,7 +66,7 @@ menu m = intercalate " " [ m
                          , "-nf '{{:theme/foreground}}'"
                          , "-sb '{{:theme/foreground}}'"
                          , "-sf '{{:theme/background}}'"
-                         , "-h '{{(if (> (:theme/dpi config) 96) 64 32)}}'"
+                         , "-h '{{:xmobar/height}}'"
                          ]
 
 action id = intercalate "" [ "<action=`xdotool key alt+"

@@ -1,7 +1,7 @@
 Config { font = "xft:{{:theme/font-name}}:pixelsize={{:theme/font-size}}"
        , bgColor = "{{:theme/background}}"
        , fgColor = "{{:theme/foreground}}"
-       , position = TopSize C 100 {{(if (> (:theme/dpi config) 96) 64 32)}}
+       , position = TopSize C 100 {{:xmobar/height}}
        , additionalFonts = [-- http://fontawesome.io/cheatsheet/
        "xft:Font Awesome 5 Free:style=Solid:pixelsize={{:theme/font-size}}"
        ]
