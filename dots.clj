@@ -15,21 +15,35 @@
            (org.apache.batik.transcoder TranscoderInput TranscoderOutput)
            (org.apache.batik.transcoder.image PNGTranscoder)))
 
+(defn xmobar [config]
+  (str
+   " %UnsafeStdinReader% }{ "
+   (->> [[:system/has-wireless?  "%wlp4s0wi%"]
+         [:system/has-backlight? "%bright%"]
+         [:system/has-battery?   "%battery%"]
+         [:system/has-sound?     "%date%"]]
+        (filter (fn [[k]] (k config)))
+        (map second)
+        (clojure.string/join " | "))
+   " "))
+
 (def db
   {:config/profiles
    {:default
     {:theme/dpi 96
      :theme/font-size 18
-     :system/has-sound? true
      :theme/font-name "Inconsolata"
-     :theme/font-alt "Inconsolata for Powerline"}
+     :theme/font-alt "Inconsolata for Powerline"
+     :xmobar/template (xmobar #{:system/has-sound?})}
     :hidpi
     {:theme/dpi 196
      :theme/font-size 38}
     :laptop
-    {:system/has-battery? true
-     :system/has-wireless? true
-     :system/has-backlight? true}}
+    {:xmobar/template
+     (xmobar #{:system/has-sound?
+               :system/has-battery?
+               :system/has-wireless?
+               :system/has-backlight?})}}
    :config/themes
    {:nord
     {:theme/name "nord"

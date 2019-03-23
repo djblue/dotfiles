@@ -35,16 +35,5 @@ Config { font = "xft:{{:theme/font-name}}:pixelsize={{:theme/font-size}}"
                                             ] 60
                     ]
        , alignSep = "}{"
-       , template = "{{
-(str
-  " %UnsafeStdinReader% }{ "
-  (->> [[:system/has-wireless?  "%wlp4s0wi%"]
-        [:system/has-backlight? "%bright%"]
-        [:system/has-battery?   "%battery%"]
-        [:system/has-sound?     "%date%"]]
-    (filter (fn [[k]] (k config)))
-    (map second)
-    (clojure.string/join " | "))
-  " ")
-}}"
+       , template = "{{:xmobar/template}}"
        }
