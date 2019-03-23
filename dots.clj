@@ -195,7 +195,6 @@
 
 (defn install-file [contents path]
   (let [id (-> path sha-1 (subs 0 7))
-        sha1 (sha-1 contents)
         contents (encode contents)]
     [:do
      [:if [:and
@@ -218,11 +217,15 @@
       [:mkdir "-p" [:eval [:dirname path]]]
       [:redirect [:pipe
                   [:printf contents] [:base64 "--decode"]] path]
-      (echo [:dots/files id :file/path] path)
-      (echo [:dots/files id :file/sha1] sha1)
-      (kv-set-in [:dots :files id :sha1] sha1)
+      (kv-set-in [:dots :files id :sha1]
+                 [:eval [:pipe
+                         [:sha1sum path]
+                         [:cut "-d" " " "-f" 1]]])
       (kv-set-in [:dots :files id :path] path)
-      (kv-set-in [:dots :files id :contents] contents)]]))
+      (kv-set-in [:dots :files id :contents] contents)
+      (echo [:dots/files id :file/path] path)
+      (echo [:dots/files id :file/sha1]
+            (bash (kv-get-in [:dots :files id :sha1])))]]))
 
 (defn get-file [ctx filename]
   (-> ctx :dots/files (get filename)))
