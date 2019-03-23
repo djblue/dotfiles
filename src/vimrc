@@ -44,6 +44,8 @@ let g:rainbow_conf = {
       \ 'ctermfgs': ['darkred', 'darkblue', 'gray', 'lightblue', 'darkmagenta']
       \ }
 
+let g:clj_fmt_autosave = 0
+
 let g:slime_target = "tmux"
 
 let g:ctrlp_custom_ignore = 'node_modules\|DS_Store\|git\|target'
