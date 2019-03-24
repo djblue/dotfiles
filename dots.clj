@@ -141,22 +141,37 @@
                    "#66d9ef"
                    "#f8f8f2"]}}})
 
+(defn encode [s]
+  (.encodeToString (Base64/getEncoder) (if (string? s) (.getBytes s) s)))
+
 (defn get-config [db theme profiles]
   (->> profiles
        (map #(get-in db [:config/profiles %]))
        (cons (get-in db [:config/themes theme]))
        (apply merge)))
 
-(defn render-string [config template]
-  (str/replace
-   template
-   #"(?sm)\{\{((?:(?!\}\}).)*)\}\}"
-   (fn [[_ string]]
-     (let [expr (read-string string)]
-       (str
-        (cond
-          (keyword? expr) (expr config)
-          (vector? expr)  (get-in config expr)))))))
+(defn compile-expr [config expr]
+  [:printf
+   (cond
+     (keyword? expr) (expr config)
+     (vector? expr)  (get-in config expr))])
+
+(defn compile-string [config template]
+  (let [re #"(?sm)\{\{((?:(?!\}\}).)*)\}\}"
+        [f & r] (map #(-> [:pipe
+                           [:printf (encode %)]
+                           [:base64 "--decode"]])
+                     (str/split template re))]
+    (into
+     [:do
+      [:if [:file "$HOME/.dotsrc"] [:source "$HOME/.dotsrc"]]
+      f]
+     (interleave
+      (->> (re-seq re template)
+           (map second)
+           (map read-string)
+           (map #(compile-expr config %)))
+      r))))
 
 (def svg->png
   (memoize
@@ -169,9 +184,6 @@
 
 (defn git-clone [url path]
   [:if [:not [:dir path]] [:git "clone" url path]])
-
-(defn encode [s]
-  (.encodeToString (Base64/getEncoder) (if (string? s) (.getBytes s) s)))
 
 (defn echo [path value]
   [:do
@@ -249,14 +261,14 @@
                               :or {prefix? true exec? false}}]
   (fn [filename]
     (when-let [file (get-file ctx filename)]
-      (let [contents (render-string (dissoc ctx :dots/files)
-                                    (slurp file))
+      (let [script (encode (bash (compile-string ctx (slurp file))))
             path (str "$HOME/" (if prefix? "." "") filename)]
         [:do
          (install-file
           [:pipe
-           [:printf (encode contents)]
-           [:base64 "--decode"]]
+           [:printf script]
+           [:base64 "--decode"]
+           [:sh]]
           path)
          (if exec? [:chmod "+x" path])]))))
 
