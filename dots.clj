@@ -209,9 +209,8 @@
 (defn kv-dump []
   [:redirect [:pipe [:set] [:grep "^__kv_"]] kv-path])
 
-(defn install-file [contents path]
-  (let [id (-> path sha-1 (subs 0 7))
-        contents (encode contents)]
+(defn install-file [cmd path]
+  (let [id (-> path sha-1 (subs 0 7))]
     [:do
      [:if [:and
            [:file path]
@@ -231,8 +230,7 @@
        [:exit 1]]]
      [:do
       [:mkdir "-p" [:eval [:dirname path]]]
-      [:redirect [:pipe
-                  [:printf contents] [:base64 "--decode"]] path]
+      [:redirect cmd path]
       (kv-set-in [:dots :files id :sha1]
                  [:eval [:pipe
                          [:sha1sum path]
@@ -255,7 +253,11 @@
                                     (slurp file))
             path (str "$HOME/" (if prefix? "." "") filename)]
         [:do
-         (install-file contents path)
+         (install-file
+          [:pipe
+           [:printf (encode contents)]
+           [:base64 "--decode"]]
+          path)
          (if exec? [:chmod "+x" path])]))))
 
 (defn setup-bin [ctx]
@@ -286,7 +288,11 @@
     (let [contents (->> file slurp svg->png)
           path (str "$HOME/wallpaper/arch.png")]
       [:do
-       (install-file contents path)
+       (install-file
+        [:pipe
+         [:printf (encode contents)]
+         [:base64 "--decode"]]
+        path)
        (case (:system/platform ctx)
          :linux [:feh "--bg-fill" path]
          nil)])))
