@@ -237,8 +237,9 @@
                  [:eval [:pipe
                          [:sha1sum path]
                          [:cut "-d" " " "-f" 1]]])
+      (kv-set-in [:dots :files id :contents]
+                 [:eval [:pipe [:cat path] [:base64 "-w" 0]]])
       (kv-set-in [:dots :files id :path] path)
-      (kv-set-in [:dots :files id :contents] contents)
       (echo [:dots/files id :file/path] path)
       (echo [:dots/files id :file/sha1]
             (bash (kv-get-in [:dots :files id :sha1])))]]))
