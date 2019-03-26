@@ -164,7 +164,8 @@
                      (str/split template re))]
     (into
      [:do
-      [:if [:file "$HOME/.dotsrc"] [:source "$HOME/.dotsrc"]]
+      [:if [:file [:str "$HOME/.dotsrc"]]
+       [:source [:str "$HOME/.dotsrc"]]]
       f]
      (interleave
       (->> (re-seq re template)
@@ -187,12 +188,15 @@
 
 (defn echo [path value]
   [:do
-   [:pipe
-    [:printf (encode (str path " "))]
-    [:base64 "--decode"]]
-   (if (string? value)
-     [:echo (str "\\\"" value "\\\"")]
-     [:echo (str value)])])
+   [:printf (str path " ")]
+   (cond
+     (or (keyword? value)
+         (boolean? value))
+     [:echo (str value)]
+     :else [:do
+            [:echo "-n" "\""]
+            [:pipe value [:tr "-d" "\\n"]]
+            [:echo "\""]])])
 
 (defn parse [out]
   (->> (str "[" out "]")
@@ -203,7 +207,7 @@
 
 (declare bash)
 
-(def kv-path "$HOME/.dots")
+(def kv-path [:str "$HOME/.dots"])
 
 (defn kv-load []
   [:if [:file kv-path] [:source kv-path]])
@@ -222,7 +226,7 @@
   [:redirect [:pipe [:set] [:grep "^__kv_"]] kv-path])
 
 (defn install-file [cmd path]
-  (let [id (-> path sha-1 (subs 0 7))]
+  (let [id (-> (bash path) sha-1 (subs 0 7))]
     [:do
      [:if [:and
            [:file path]
@@ -233,7 +237,7 @@
                             [:cut "-d" " " "-f" 1]]]
                   (kv-get-in [:dots :files id :sha1])]]]
       [:do
-       (echo [:dots/dirty-file] path)
+       (echo [:dots/dirty-file] [:printf path])
        (echo [:dots/status] :dots/dirty)
        [:pipe
         [:echo (kv-get-in [:dots :files id :contents])]
@@ -250,9 +254,9 @@
       (kv-set-in [:dots :files id :contents]
                  [:eval [:pipe [:cat path] [:base64 "-w" 0]]])
       (kv-set-in [:dots :files id :path] path)
-      (echo [:dots/files id :file/path] path)
+      (echo [:dots/files id :file/path] [:printf path])
       (echo [:dots/files id :file/sha1]
-            (bash (kv-get-in [:dots :files id :sha1])))]]))
+            [:printf (kv-get-in [:dots :files id :sha1])])]]))
 
 (defn get-file [ctx filename]
   (-> ctx :dots/files (get filename)))
@@ -262,7 +266,7 @@
   (fn [filename]
     (when-let [file (get-file ctx filename)]
       (let [script (encode (bash (compile-string ctx (slurp file))))
-            path (str "$HOME/" (if prefix? "." "") filename)]
+            path [:str (str "$HOME/" (if prefix? "." "") filename)]]
         [:do
          (install-file
           [:pipe
@@ -287,7 +291,7 @@
 (defn setup-vim [ctx]
   [:do
    (git-clone "https://github.com/VundleVim/Vundle.vim.git"
-              "$HOME/.vim/bundle/Vundle.vim")
+              [:str "$HOME/.vim/bundle/Vundle.vim"])
    (->> ["gvimrc" "ideavimrc" "vimrc" "config/nvim/init.vim"]
         (map (install-dotfile ctx))
         (cons :do))])
@@ -298,7 +302,7 @@
 (defn setup-wallpaper [ctx]
   (when-let  [file (get-file ctx "wallpaper/arch.svg")]
     (let [contents (->> file slurp svg->png)
-          path (str "$HOME/wallpaper/arch.png")]
+          path [:str "$HOME/wallpaper/arch.png"]]
       [:do
        (install-file
         [:pipe
@@ -321,41 +325,37 @@
         (cons :do))
    [:xmonad "--recompile"]
    [:xmonad "--restart"]
-   [:xrdb "-merge" "$HOME/.Xdefaults"]
+   [:xrdb "-merge" [:str "$HOME/.Xdefaults"]]
    (setup-wallpaper ctx)])
 
 (defn set-path [& paths]
-  [:do
-   [:def :PATH ""]
-   (->> paths
-        (map #(-> [:if [:dir %] [:def :PATH (str % ":$PATH")]]))
-        (cons :do))
-   (echo [:system/path] "$PATH")])
+  [:def :PATH (str/join ":" paths)])
 
 (defn dump-info []
   [:do
-   (echo [:dots/install-time] "$(date -u +'%Y-%m-%dT%H:%M:%SZ')")
-   (echo [:system/shell] "$0")
-   (echo [:system/kernel-name] "$(uname -s)")
-   (echo [:system/kernel-release] "$(uname -r)")
-   (echo [:system/machine] "$(uname -m)")])
+   (echo [:dots/install-time]
+         [:date "-u" "+%Y-%m-%dT%H:%M:%SZ"])
+   (echo [:system/shell] [:printf [:ref :0]])
+   (echo [:system/kernel-name] [:uname "-s"])
+   (echo [:system/kernel-release] [:uname "-r"])
+   (echo [:system/machine] [:uname "-m"])])
 
 (defn dots-script [files]
   (let [ctx {:dots/files files}]
     [:do
      [:set "-e"]
      (kv-load)
-     [:if [:zero "$HOME"]
+     [:if [:zero [:ref :HOME]]
       [:do
        (echo [:dots/status] :dots/unknown-home)
        [:exit 1]]
-      (echo [:system/home] "$HOME")]
-     [:if [:zero "$HOST"]
+      (echo [:system/home] [:printf [:ref :HOME]])]
+     [:if [:zero [:ref :HOST]]
       [:do
        [:def :HOST [:eval [:hostname]]]
        (echo [:system/host-set?] false)]
       (echo [:system/host-set?] true)]
-     (echo [:system/host] "$HOST")
+     (echo [:system/host] [:printf [:ref :HOST]])
      (set-path "/bin"
                "/sbin"
                "/usr/bin"
@@ -363,7 +363,7 @@
                "/usr/local/sbin"
                "/usr/sbin")
      (dump-info)
-     [:case "$HOST"
+     [:case [:ref :HOST]
       [:bash "red-machine|archy"]
       (let [ctx (merge ctx
                        (get-config db :nord [:default]))]
@@ -410,10 +410,11 @@
 
 (defn bash [script]
   (cond
-    (string? script) (str "\"" script "\"")
+    (string? script) (str "'" script "'")
+    (keyword? script) (name script)
     (or (vector? script) (seq? script))
-    (let [[op & args] script
-          args (map bash (filter some? args))
+    (let [[op & ops] script
+          args (map bash (filter some? ops))
           [arg1 arg2 arg3] args]
       (case op
         :do         (str/join "\n" args)
@@ -442,8 +443,9 @@
         :redirect   (str arg1 " > " arg2)
         :append     (str arg1 " >> " arg2)
         :def        (str (name arg1) "=" arg2)
-        :ref        (str "$" arg1)
+        :ref        (str "$" (name arg1))
         :bash       (second script)
+        :str        (str "\"" (first ops) "\"")
         (str (name op) " " (str/join " " args))))
     :else script))
 
@@ -562,8 +564,8 @@
 (deftest install-existing-file
   (let [process (run-install {:HOST "archlinux"}
                              [:do
-                              [:mkdir "-p" "$HOME/bin"]
-                              [:touch "$HOME/bin/vim-wrap"]])
+                              [:mkdir "-p" [:str "$HOME/bin"]]
+                              [:touch [:str "$HOME/bin/vim-wrap"]]])
         output (-> process :out parse)]
     (is (= (:exit process) 1))
     (is (= (:dots/status output) :dots/dirty))
@@ -573,8 +575,8 @@
   (let [process (run-install {:HOST "archlinux"
                               :FORCE_INSTALL 1}
                              [:do
-                              [:mkdir "-p" "$HOME/bin"]
-                              [:touch "$HOME/bin/vim-wrap"]])
+                              [:mkdir "-p" [:str "$HOME/bin"]]
+                              [:touch [:str "$HOME/bin/vim-wrap"]]])
         output (-> process :out parse)]
     (is (= (:exit process) 0))
     (is (= (:dots/status output) :dots/success))))
