@@ -15,6 +15,8 @@
            (org.apache.batik.transcoder TranscoderInput TranscoderOutput)
            (org.apache.batik.transcoder.image PNGTranscoder)))
 
+#_(->> (-main) with-out-str (spit "install.sh"))
+
 (defn xmobar [config]
   (str
    " %UnsafeStdinReader% }{ "
@@ -183,9 +185,6 @@
                    (TranscoderOutput. out))
        (.toByteArray out)))))
 
-(defn git-clone [url path]
-  [:if [:not [:dir path]] [:git "clone" url path]])
-
 (defn echo [path value]
   [:do
    [:printf (str path " ")]
@@ -198,6 +197,15 @@
             [:pipe value [:tr "-d" "\\n"]]
             [:echo "\""]])])
 
+(defn setup-vundle []
+  (let [url "https://github.com/VundleVim/Vundle.vim.git"
+        path [:str "$HOME/.vim/bundle/Vundle.vim"]]
+    [:if [:not [:dir path]]
+     [:do
+      (echo [:vundle/init?] false)
+      [:redirect [:git "clone" url path] "/dev/null" :all]]
+     (echo [:vundle/init?] true)]))
+
 (defn parse [out]
   (->> (str "[" out "]")
        (read-string)
@@ -207,56 +215,81 @@
 
 (declare bash)
 
-(def kv-path [:str "$HOME/.dots"])
-
-(defn kv-load []
-  [:if [:file kv-path] [:source kv-path]])
-
-(defn kv-get-in [ks]
-  [:ref (->> ks (map name) (str/join "_") (str "__kv_") symbol)])
-
-(defn kv-set-in [ks v]
-  (let [d [:def (->> ks (map name) (str/join "_") (str "__kv_") symbol)  v]
-        e (encode (str (bash d) "\n"))]
+(defn transact [script message]
+  (let [dir (gensym)
+        commit (gensym)
+        git (fn [& args]
+              (concat [:git [:str "--git-dir=$HOME/.dots"]] args))
+        git-home (fn [& args] (apply git [:str "--work-tree=$HOME"] args))
+        git-temp (fn [& args] (apply git [:str (str "--work-tree=$" dir)] args))
+        silent (fn [& cmds]
+                 (->> cmds
+                      (map (fn [cmd] [:redirect cmd "/dev/null" :all]))
+                      (cons :do)))]
     [:do
-     d
-     [:append [:pipe [:echo e] [:base64 "--decode"]] kv-path]]))
-
-(defn kv-dump []
-  [:redirect [:pipe [:set] [:grep "^__kv_"]] kv-path])
-
-(defn install-file [cmd path]
-  (let [id (-> (bash path) sha-1 (subs 0 7))]
-    [:do
-     [:if [:and
-           [:file path]
-           [:zero [:ref 'FORCE_INSTALL]]
-           [:not [:equals [:eval
-                           [:pipe
-                            [:sha1sum path]
-                            [:cut "-d" " " "-f" 1]]]
-                  (kv-get-in [:dots :files id :sha1])]]]
+     [:set "-e"]
+     [:if [:not [:dir [:str "$HOME/.dots"]]]
       [:do
-       (echo [:dots/dirty-file] [:printf path])
-       (echo [:dots/status] :dots/dirty)
-       [:pipe
-        [:echo (kv-get-in [:dots :files id :contents])]
-        [:base64 "--decode"]
-        [:diff "-u" "-" path [:bash "1>&2"]]]
+       (silent [:git :init "--bare" [:str "$HOME/.dots"]]
+               (git :config "--local" :user.email "a.s.badahdah@gmail.com")
+               (git :config "--local" :user.name "Chris Badahdah")
+               (git :config "--local" :status.showUntrackedFiles :no)
+               (git-home :commit "--allow-empty" "--message" "Initializing dots repo"))
+       (echo [:dots/init?] false)]
+      (echo [:dots/init?] true)]
+
+     [:def dir [:eval [:mktemp "-d"]]]
+     [:trap
+      [:str
+       (bash [:block
+              (silent (git-temp :checkout :master "-f"))
+              [:rm "-r" [:ref dir]]])]
+      :EXIT]
+
+     [:or (silent (git-home :diff "--no-ext-diff" "--exit-code"))
+      [:block
+       [:if [:zero [:ref :FORCE_INSTALL]]
+        [:do
+         (echo [:dots/status] :dots/dirty)
+         [:exit 1]]]]]
+
+     (silent (git-temp :checkout "--detach"))
+
+     (silent [:pushd [:ref dir]])
+     script
+     (silent [:popd])
+
+     (silent (git-temp :add "."))
+     [:or
+      (silent (git-temp :commit "--message" message))
+      [:block
+       [:if [:zero [:ref :FORCE_INSTALL]]
+        [:do
+         (echo [:dots/status] :dots/unchanged)
+         [:exit 0]]]]]
+
+     [:def commit [:eval (git-temp :rev-parse :HEAD)]]
+
+     (silent (git-temp :checkout :master "-f")
+             (git-home :status))
+     [:or
+      (silent (git-home :reset
+                        [:eval [:if [:zero [:ref :FORCE_INSTALL]]
+                                [:echo "--merge"]
+                                [:echo "--hard"]]]
+                        [:ref commit]))
+      [:block
+       (echo [:dots/status] :dots/file-exists)
        [:exit 1]]]
-     [:do
-      [:mkdir "-p" [:eval [:dirname path]]]
-      [:redirect cmd path]
-      (kv-set-in [:dots :files id :sha1]
-                 [:eval [:pipe
-                         [:sha1sum path]
-                         [:cut "-d" " " "-f" 1]]])
-      (kv-set-in [:dots :files id :contents]
-                 [:eval [:pipe [:cat path] [:base64 "-w" 0]]])
-      (kv-set-in [:dots :files id :path] path)
-      (echo [:dots/files id :file/path] [:printf path])
-      (echo [:dots/files id :file/sha1]
-            [:printf (kv-get-in [:dots :files id :sha1])])]]))
+
+     [:printf (str [:dots/files-changed] " [ ")]
+     [:pipe
+      (git-home :diff "--name-only" "HEAD~1")
+      [:sed "-E" "s/(.*)/\"\\1\"/"]
+      [:tr "\\n" " "]]
+     [:echo "]"]
+
+     (echo [:dots/status] :dots/success)]))
 
 (defn get-file [ctx filename]
   (-> ctx :dots/files (get filename)))
@@ -266,35 +299,31 @@
   (fn [filename]
     (when-let [file (get-file ctx filename)]
       (let [script (encode (bash (compile-string ctx (slurp file))))
-            path [:str (str "$HOME/" (if prefix? "." "") filename)]]
+            path (str (if prefix? "." "") filename)]
         [:do
-         (install-file
+         [:mkdir "-p" [:eval [:dirname path]]]
+         [:redirect
           [:pipe
            [:printf script]
            [:base64 "--decode"]
            [:sh]]
-          path)
+          path]
          (if exec? [:chmod "+x" path])]))))
 
 (defn setup-bin [ctx]
-  [:do
-   (->> ["bin/vim-wrap"]
-        (map (install-dotfile ctx :prefix? false :exec? true))
-        (cons :do))])
+  (->> ["bin/vim-wrap"]
+       (map (install-dotfile ctx :prefix? false :exec? true))
+       (cons :do)))
 
 (defn setup-shell [ctx]
-  [:do
-   (->> ["aliases" "bashrc" "profile" "tmux.conf" "zshrc" "gitconfig"]
-        (map (install-dotfile ctx))
-        (cons :do))])
+  (->> ["aliases" "bashrc" "profile" "tmux.conf" "zshrc" "gitconfig"]
+       (map (install-dotfile ctx))
+       (cons :do)))
 
 (defn setup-vim [ctx]
-  [:do
-   (git-clone "https://github.com/VundleVim/Vundle.vim.git"
-              [:str "$HOME/.vim/bundle/Vundle.vim"])
-   (->> ["gvimrc" "ideavimrc" "vimrc" "config/nvim/init.vim"]
-        (map (install-dotfile ctx))
-        (cons :do))])
+  (->> ["gvimrc" "ideavimrc" "vimrc" "config/nvim/init.vim"]
+       (map (install-dotfile ctx))
+       (cons :do)))
 
 (defn setup-cli [ctx]
   [:do (setup-bin ctx) (setup-shell ctx) (setup-vim ctx)])
@@ -302,13 +331,14 @@
 (defn setup-wallpaper [ctx]
   (when-let  [file (get-file ctx "wallpaper/arch.svg")]
     (let [contents (->> file slurp svg->png)
-          path [:str "$HOME/wallpaper/arch.png"]]
+          path "wallpaper/arch.png"]
       [:do
-       (install-file
+       [:mkdir "wallpaper"]
+       [:redirect
         [:pipe
          [:printf (encode contents)]
          [:base64 "--decode"]]
-        path)
+        path]
        (case (:system/platform ctx)
          :linux [:feh "--bg-fill" path]
          nil)])))
@@ -340,53 +370,55 @@
    (echo [:system/kernel-release] [:uname "-r"])
    (echo [:system/machine] [:uname "-m"])])
 
-(defn dots-script [files]
-  (let [ctx {:dots/files files}]
-    [:do
-     [:set "-e"]
-     (kv-load)
-     [:if [:zero [:ref :HOME]]
-      [:do
-       (echo [:dots/status] :dots/unknown-home)
-       [:exit 1]]
-      (echo [:system/home] [:printf [:ref :HOME]])]
-     [:if [:zero [:ref :HOST]]
-      [:do
-       [:def :HOST [:eval [:hostname]]]
-       (echo [:system/host-set?] false)]
-      (echo [:system/host-set?] true)]
-     (echo [:system/host] [:printf [:ref :HOST]])
-     (set-path "/bin"
-               "/sbin"
-               "/usr/bin"
-               "/usr/local/bin"
-               "/usr/local/sbin"
-               "/usr/sbin")
-     (dump-info)
-     [:case [:ref :HOST]
-      [:bash "red-machine|archy"]
-      (let [ctx (merge ctx
-                       (get-config db :nord [:default]))]
+(defn dots-script
+  ([files] (dots-script files "Ran install.sh"))
+  ([files message]
+   (let [ctx {:dots/files files}]
+     [:do
+      [:set "-e"]
+      (set-path "/bin"
+                "/sbin"
+                "/usr/bin"
+                "/usr/local/bin"
+                "/usr/local/sbin"
+                "/usr/sbin")
+      [:if [:zero [:ref :HOME]]
+       [:do
+        (echo [:dots/status] :dots/unknown-home)
+        [:exit 1]]
+       (echo [:system/home] [:printf [:ref :HOME]])]
+      [:if [:zero [:ref :HOST]]
+       [:do
+        [:def :HOST [:eval [:hostname]]]
+        (echo [:system/host-set?] false)]
+       (echo [:system/host-set?] true)]
+      (echo [:system/host] [:printf [:ref :HOST]])
+      (dump-info)
+      (setup-vundle)
+      (transact
+       [:case [:ref :HOST]
+        [:bash "red-machine|archy"]
+        (let [ctx (merge ctx
+                         (get-config db :nord [:default]))]
+          [:do
+           (setup-cli ctx)
+           (setup-xmonad ctx)])
+        "osx"
+        (let [ctx (merge ctx
+                         (get-config db :nord [:default :laptop :hidpi]))]
+          [:do
+           (setup-cli ctx)
+           (setup-xmonad ctx)])
+        [:bash "archlinux"]
+        (let [ctx (merge ctx
+                         (get-config db :nord [:default]))]
+          [:do
+           (setup-cli ctx)
+           (setup-wallpaper ctx)])
         [:do
-         (setup-cli ctx)
-         (setup-xmonad ctx)])
-      "osx"
-      (let [ctx (merge ctx
-                       (get-config db :nord [:default :laptop :hidpi]))]
-        [:do
-         (setup-cli ctx)
-         (setup-xmonad ctx)])
-      [:bash "archlinux"]
-      (let [ctx (merge ctx
-                       (get-config db :nord [:default]))]
-        [:do
-         (setup-cli ctx)
-         (setup-wallpaper ctx)])
-      [:do
-       (echo [:dots/status] :dots/unknown-host)
-       [:exit 1]]]
-     (kv-dump)
-     (echo [:dots/status] :dots/success)]))
+         (echo [:dots/status] :dots/unknown-host)
+         [:exit 1]]]
+       message)])))
 
 (defn hoist
   ([script]
@@ -401,7 +433,8 @@
        {:vars vars :script [:ref var]}
        (let [var (gensym)]
          {:vars (assoc vars script var) :script [:ref var]}))
-     (or (vector? script) (seq? script))
+     (and (or (vector? script) (seq? script))
+          (not= (first script) :str))
      (reduce
       #(merge-with conj %1 (hoist %2 (:vars %1)))
       {:vars vars :script [(first script)]}
@@ -433,6 +466,8 @@
                               (str/join "\n"))
                          "\nesac")
         :and        (str/join " && " args)
+        :or         (str/join " || " args)
+        :block      (str "{ " (str/join "; " args) "; }")
         :not        (str "! " arg1)
         :dir        (str "-d " arg1)
         :file       (str "-f " arg1)
@@ -440,7 +475,7 @@
         :eval       (str "$(" arg1 ")")
         :pipe       (str/join " | " args)
         :equals     (str arg1 " == " arg2)
-        :redirect   (str arg1 " > " arg2)
+        :redirect   (str arg1 (case arg3 "stderr" " 2>" "all" " &> " " > ") arg2)
         :append     (str arg1 " >> " arg2)
         :def        (str (name arg1) "=" arg2)
         :ref        (str "$" (name arg1))
@@ -472,16 +507,20 @@
     (api/command nvim command)))
 
 (defn handle-edit [nvim file]
-  (let [dots (dots-script (get-sources [file]))
+  (let [dots (dots-script (get-sources) (str "Updated " (.getName file)))
         run (sh "bash" :in (bash dots))
         result (->> run :out parse)]
     (send-msg!
      nvim
      (if (zero? (:exit run))
-       (->> result
-            :dots/files
-            (map #(str "Updated `" (-> % second :file/path) "` successfully!"))
-            (str/join "\n"))
+       (case (:dots/status result)
+         :dots/unchanged "No changed files"
+         (->> result
+              :dots/files-changed
+              (map #(str "Updated `" % "` successfully"))
+              (str/join "\n")
+              pprint
+              with-out-str))
        (str
         (->> result pprint with-out-str)
         (:err run))))))
@@ -568,8 +607,7 @@
                               [:touch [:str "$HOME/bin/vim-wrap"]]])
         output (-> process :out parse)]
     (is (= (:exit process) 1))
-    (is (= (:dots/status output) :dots/dirty))
-    (is (str/ends-with? (:dots/dirty-file output) "bin/vim-wrap"))))
+    (is (= (:dots/status output) :dots/file-exists))))
 
 (deftest install-force-install
   (let [process (run-install {:HOST "archlinux"
