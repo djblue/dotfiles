@@ -7,10 +7,8 @@
             [clojure.test :refer [is deftest] :as t]
             [hawk.core :as hawk]
             [neovim-client.1.api :as api]
-            [neovim-client.nvim :as nvim]
-            [digest :refer [sha-1]])
+            [neovim-client.nvim :as nvim])
   (:import (java.util Base64)
-           (java.time Instant)
            (java.io StringReader ByteArrayOutputStream)
            (org.apache.batik.transcoder TranscoderInput TranscoderOutput)
            (org.apache.batik.transcoder.image PNGTranscoder)))

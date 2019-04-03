@@ -2,7 +2,6 @@
  :deps
  {org.clojure/tools.nrepl {:mvn/version "0.2.12"}
   hawk {:mvn/version "0.2.11"}
-  digest {:mvn/version "1.4.8"}
   neovim-client {:mvn/version "0.1.2"}
   org.apache.xmlgraphics/batik-codec {:mvn/version "1.9"}
   org.apache.xmlgraphics/batik-transcoder {:mvn/version "1.9"}}
