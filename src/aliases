@@ -76,3 +76,5 @@ alias ..='cd ../'
 
 is_osx || alias pbcopy='xsel --clipboard --input'
 is_osx || alias pbpaste='xsel --clipboard --output'
+
+alias dots='git "--git-dir=$HOME/.dots" "--work-tree=$HOME"'
