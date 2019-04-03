@@ -152,29 +152,16 @@
        (cons (get-in db [:config/themes theme]))
        (apply merge)))
 
-(defn compile-expr [config expr]
-  [:printf
-   (cond
-     (keyword? expr) (expr config)
-     (vector? expr)  (get-in config expr))])
-
-(defn compile-string [config template]
-  (let [re #"(?sm)\{\{((?:(?!\}\}).)*)\}\}"
-        [f & r] (map #(-> [:pipe
-                           [:printf (encode %)]
-                           [:base64 "--decode"]])
-                     (str/split template re))]
-    (into
-     [:do
-      [:if [:file [:str "$HOME/.dotsrc"]]
-       [:source [:str "$HOME/.dotsrc"]]]
-      f]
-     (interleave
-      (->> (re-seq re template)
-           (map second)
-           (map read-string)
-           (map #(compile-expr config %)))
-      r))))
+(defn render-string [config template]
+  (str/replace
+   template
+   #"(?sm)\{\{((?:(?!\}\}).)*)\}\}"
+   (fn [[_ string]]
+     (let [expr (read-string string)]
+       (str
+        (cond
+          (keyword? expr) (expr config)
+          (vector? expr)  (get-in config expr)))))))
 
 (def svg->png
   (memoize
@@ -298,15 +285,14 @@
                               :or {prefix? true exec? false}}]
   (fn [filename]
     (when-let [file (get-file ctx filename)]
-      (let [script (encode (bash (compile-string ctx (slurp file))))
+      (let [contents (encode (render-string ctx (slurp file)))
             path (str (if prefix? "." "") filename)]
         [:do
          [:mkdir "-p" [:eval [:dirname path]]]
          [:redirect
           [:pipe
-           [:printf script]
-           [:base64 "--decode"]
-           [:sh]]
+           [:printf contents]
+           [:base64 "--decode"]]
           path]
          (if exec? [:chmod "+x" path])]))))
 
