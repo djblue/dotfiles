@@ -20,7 +20,7 @@ exists fasd && eval "$(fasd --init auto)"
 # open file as if in file browser
 exists xdg-open && alias open='xdg-open'
 
-# listing 
+# listing
 alias ls='ls --color=auto'
 is_osx && alias ls='ls -G'
 alias ll='ls -AlF'

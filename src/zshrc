@@ -27,7 +27,7 @@ function current_branch {
 function precmd {
 
 branch="$(current_branch)"
-if [ "$branch" != "" ]; then 
+if [ "$branch" != "" ]; then
     branch="on ${repo}$branch${rs}"
 fi
 
