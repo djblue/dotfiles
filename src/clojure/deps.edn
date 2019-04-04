@@ -13,4 +13,6 @@
  {:vrepl {:main-opts ["-m vrepl.core"]
           :extra-deps
           {vrepl {:git/url "https://github.com/djblue/vrepl.git"
-                  :sha "a0aa33c0643fded3091ce3358f64217cdcfa1f15"}}}}}
+                  :sha "a0aa33c0643fded3091ce3358f64217cdcfa1f15"}}}
+  :rebel {:extra-deps {com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
+          :main-opts ["-m" "rebel-readline.main"]}}}
