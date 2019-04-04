@@ -312,8 +312,13 @@
        (map (install-dotfile ctx))
        (cons :do)))
 
+(defn setup-clojure [ctx]
+  (->> ["clojure/deps.edn"]
+       (map (install-dotfile ctx))
+       (cons :do)))
+
 (defn setup-cli [ctx]
-  [:do (setup-bin ctx) (setup-shell ctx) (setup-vim ctx)])
+  [:do (setup-bin ctx) (setup-shell ctx) (setup-vim ctx) (setup-clojure ctx)])
 
 (defn setup-wallpaper [ctx]
   (when-let  [file (get-file ctx "wallpaper/arch.svg")]

@@ -1,0 +1,16 @@
+;; The deps.edn file describes the information needed to build a classpath.
+;;
+;; When using the `clojure` or `clj` script, there are several deps.edn files
+;; that are combined:
+;; - install-level
+;; - user level (this file)
+;; - project level (current directory when invoked)
+;;
+;; For all attributes other than :paths, these config files are merged left to right.
+;; Only the last :paths is kept and others are dropped.
+
+{:aliases
+ {:vrepl {:main-opts ["-m vrepl.core"]
+          :extra-deps
+          {vrepl {:git/url "https://github.com/djblue/vrepl.git"
+                  :sha "a0aa33c0643fded3091ce3358f64217cdcfa1f15"}}}}}
