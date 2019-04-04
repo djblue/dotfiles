@@ -339,8 +339,7 @@
         (cons :do))
    [:xmonad "--recompile"]
    [:xmonad "--restart"]
-   [:xrdb "-merge" [:str "$HOME/.Xdefaults"]]
-   (setup-wallpaper ctx)])
+   [:xrdb "-merge" [:str "$HOME/.Xdefaults"]]])
 
 (defn set-path [& paths]
   [:def :PATH (str/join ":" paths)])
@@ -354,55 +353,63 @@
    (echo [:system/kernel-release] [:uname "-r"])
    (echo [:system/machine] [:uname "-m"])])
 
+(defn setup-host [config]
+  (let [ctx (merge
+             config
+             (get-config db (:config/theme config)
+                         (concat [:default] (:config/profiles config))))]
+    [:do
+     (setup-cli ctx)
+     (when (:config/setup-wallpaper? config) (setup-wallpaper ctx))
+     (when (:config/setup-xmonad? config) (setup-xmonad ctx))]))
+
 (defn dots-script
   ([files] (dots-script files "Ran install.sh"))
   ([files message]
-   (let [ctx {:dots/files files}]
+   [:do
+    [:set "-e"]
+    (set-path "/bin"
+              "/sbin"
+              "/usr/bin"
+              "/usr/local/bin"
+              "/usr/local/sbin"
+              "/usr/sbin")
+    [:if [:zero [:ref :HOME]]
      [:do
-      [:set "-e"]
-      (set-path "/bin"
-                "/sbin"
-                "/usr/bin"
-                "/usr/local/bin"
-                "/usr/local/sbin"
-                "/usr/sbin")
-      [:if [:zero [:ref :HOME]]
-       [:do
-        (echo [:dots/status] :dots/unknown-home)
-        [:exit 1]]
-       (echo [:system/home] [:printf [:ref :HOME]])]
-      [:if [:zero [:ref :HOST]]
-       [:do
-        [:def :HOST [:eval [:hostname]]]
-        (echo [:system/host-set?] false)]
-       (echo [:system/host-set?] true)]
-      (echo [:system/host] [:printf [:ref :HOST]])
-      (dump-info)
-      (setup-vundle)
-      (transact
-       [:case [:ref :HOST]
-        [:bash "red-machine|archy"]
-        (let [ctx (merge ctx
-                         (get-config db :nord [:default]))]
-          [:do
-           (setup-cli ctx)
-           (setup-xmonad ctx)])
-        "osx"
-        (let [ctx (merge ctx
-                         (get-config db :nord [:default :laptop :hidpi]))]
-          [:do
-           (setup-cli ctx)
-           (setup-xmonad ctx)])
-        [:bash "archlinux"]
-        (let [ctx (merge ctx
-                         (get-config db :nord [:default]))]
-          [:do
-           (setup-cli ctx)
-           (setup-wallpaper ctx)])
-        [:do
-         (echo [:dots/status] :dots/unknown-host)
-         [:exit 1]]]
-       message)])))
+      (echo [:dots/status] :dots/unknown-home)
+      [:exit 1]]
+     (echo [:system/home] [:printf [:ref :HOME]])]
+    [:if [:zero [:ref :HOST]]
+     [:do
+      [:def :HOST [:eval [:hostname]]]
+      (echo [:system/host-set?] false)]
+     (echo [:system/host-set?] true)]
+    (echo [:system/host] [:printf [:ref :HOST]])
+    (dump-info)
+    (setup-vundle)
+    (transact
+     [:case [:ref :HOST]
+      :red-machine
+      (setup-host
+       {:dots/files files
+        :config/theme :nord})
+      :archy
+      (setup-host
+       {:dots/files files
+        :config/theme :nord})
+      :archlinux
+      (setup-host
+       {:dots/files files
+        :config/theme :nord})
+      :osx
+      (setup-host
+       {:dots/files files
+        :config/theme :nord
+        :config/profiles [:laptop :hidpi]})
+      (setup-host
+       {:dots/files files
+        :config/theme :nord})]
+     message)]))
 
 (defn hoist
   ([script]
@@ -463,7 +470,6 @@
         :append     (str arg1 " >> " arg2)
         :def        (str (name arg1) "=" arg2)
         :ref        (str "$" (name arg1))
-        :bash       (second script)
         :str        (str "\"" (first ops) "\"")
         (str (name op) " " (str/join " " args))))
     :else script))
@@ -569,13 +575,6 @@
         output (-> process :out parse)]
     (is (= (:exit process) 0))
     (is (= (:dots/status output) :dots/success))
-    (is (= (:system/host-set? output) true))))
-
-(deftest install-unknown-host
-  (let [process (run-install {:HOST "unknown"})
-        output (-> process :out parse)]
-    (is (= (:exit process) 1))
-    (is (= (:dots/status output) :dots/unknown-host))
     (is (= (:system/host-set? output) true))))
 
 (deftest install-unknown-home
