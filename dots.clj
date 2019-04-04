@@ -24,7 +24,7 @@
          [:system/has-sound?     "%date%"]]
         (filter (fn [[k]] (k config)))
         (map second)
-        (clojure.string/join " | "))
+        (str/join " | "))
    " "))
 
 (def db
@@ -284,9 +284,12 @@
   (fn [filename]
     (when-let [file (get-file ctx filename)]
       (let [contents (encode (render-string ctx (slurp file)))
-            path (str (if prefix? "." "") filename)]
+            path (str (if prefix? "." "") filename)
+            parent (butlast (str/split filename #"/"))]
         [:do
-         [:mkdir "-p" [:eval [:dirname path]]]
+         (when-not (zero? (count parent))
+           [:mkdir "-p" (str (if prefix? "." "")
+                             (str/join "/" parent))])
          [:redirect
           [:pipe
            [:printf contents]
