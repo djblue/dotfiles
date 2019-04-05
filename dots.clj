@@ -317,8 +317,21 @@
        (map (install-dotfile ctx))
        (cons :do)))
 
+(defn setup-atom [ctx]
+  (->> ["atom/config.cson"
+        "atom/keymap.cson"
+        "atom/packages.cson"
+        "atom/styles.less"]
+       (map (install-dotfile ctx))
+       (cons :do)))
+
 (defn setup-cli [ctx]
-  [:do (setup-bin ctx) (setup-shell ctx) (setup-vim ctx) (setup-clojure ctx)])
+  [:do
+   (setup-bin ctx)
+   (setup-shell ctx)
+   (setup-vim ctx)
+   (setup-clojure ctx)
+   (setup-atom ctx)])
 
 (defn setup-wallpaper [ctx]
   (when-let  [file (get-file ctx "wallpaper/arch.svg")]

@@ -1,0 +1,67 @@
+"*":
+  "atom-beautify":
+    clj:
+      beautify_on_save: true
+    general:
+      _analyticsUserId: "2ea18ce2-2a8a-410b-8d4a-82bd7d2a4fe2"
+  "color-picker":
+    preferredFormat: "HEX"
+  core:
+    customFileTypes:
+      "source.ini": [
+        ".hgrc"
+        ".buckconfig"
+        ".flowconfig"
+      ]
+      "source.json": [
+        "BUCK.autodeps"
+      ]
+      "source.python": [
+        "BUCK"
+      ]
+    disabledPackages: [
+      "image-view"
+      "welcome"
+    ]
+    projectHome: "/repos"
+    telemetryConsent: "limited"
+  editor:
+    fontFamily: "Inconsolata, Menlo, Consolas, DejaVu Sans Mono, monospace"
+    fontSize: 17
+    scrollPastEnd: true
+  "exception-reporting":
+    userId: "f52d3b61-91d4-4fd9-a03f-0e437eaaefd0"
+  "git-blame":
+    columnWidth: 396
+  "lisp-paredit": {}
+  "package-sync": {}
+  "proto-repl":
+    autoPrettyPrint: true
+  swackets:
+    colorParens: true
+    colorSquareBrackets: true
+    colors: [
+      "#bf616a"
+      "#a3be8c"
+      "#ebcb8b"
+      "#81a1c1"
+      "#b48ead"
+      "#8fbcbb"
+    ]
+  tabs:
+    alwaysShowTabBar: false
+    enableVcsColoring: true
+  "tool-bar":
+    position: "Left"
+  "tree-view":
+    autoReveal: true
+    hideIgnoredNames: true
+    hideVcsIgnoredFiles: true
+    squashDirectoryNames: true
+  "vim-mode-plus":
+    hideCommandsFromCommandPalette: true
+  welcome:
+    showOnStartup: false
+  "which-key":
+    keystrokesFormat: "long"
+    showBindingsDelay: 0.1
