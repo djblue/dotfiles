@@ -317,6 +317,11 @@
        (map (install-dotfile ctx))
        (cons :do)))
 
+(defn setup-emacs [ctx]
+  (->> ["emacs.d/init.el" "emacs.d/settings.org"]
+       (map (install-dotfile ctx))
+       (cons :do)))
+
 (defn setup-atom [ctx]
   (->> ["atom/config.cson"
         "atom/keymap.cson"
@@ -330,6 +335,7 @@
    (setup-bin ctx)
    (setup-shell ctx)
    (setup-vim ctx)
+   (setup-emacs ctx)
    (setup-clojure ctx)
    (setup-atom ctx)])
 
