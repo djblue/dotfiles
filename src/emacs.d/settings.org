@@ -1,25 +1,29 @@
 * packages
-  
+
 ** melpa
-   
+
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'package-archives
              '("melpa" . "https://stable.melpa.org/packages/"))
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(require 'use-package)
+(setq use-package-always-ensure t)
 (package-initialize)
 #+END_SRC
 
 * variables for modes
-  
+
 #+BEGIN_SRC emacs-lisp
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
-(setq visible-bell 1)
+(setq visible-bell nil)
 (setq inhibit-splash-screen t)
 (setq make-backup-files nil)
 (global-linum-mode 1)
 (global-hl-line-mode 1)
-(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
 #+END_SRC
 
 * fonts
@@ -29,28 +33,54 @@
 #+END_SRC
 
 * evil mode
+
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/evil")
-(require 'evil)
-(evil-mode 1)
+(use-package evil
+  :init
+  (add-to-list 'load-path "~/.emacs.d/evil")
+  :config
+  (evil-mode 1))
 #+END_SRC
 
 * theme
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'custom-theme-load-path (expand-file-name "~/.emacs.d/themes/"))
-(load-theme 'nord t)
-#+END_SRC
-#
-* powerline
-  
-#+BEGIN_SRC emacs-lisp
-(require 'powerline)
-(setq ns-use-srgb-colorspace nil)
-(setq powerline-image-apple-rgb t)
-(powerline-default-theme)
-(setq powerline-default-separator 'slant)
-(require 'airline-themes)
-(load-theme 'airline-doom-one t)
+(use-package nord-theme
+  :init
+  (add-to-list 'custom-theme-load-path (expand-file-name "~/.emacs.d/themes/"))
+  :config
+  (load-theme 'nord t))
 #+END_SRC
 
+* powerline
+
+#+BEGIN_SRC emacs-lisp
+(use-package powerline)
+
+(use-package airline-themes
+  :init
+  (progn
+    (require 'airline-themes)
+    (load-theme 'airline-doom-one t))
+  :config
+  (progn
+    (setq powerline-utf-8-separator-left        #xe0b0
+          powerline-utf-8-separator-right       #xe0b2
+          airline-utf-glyph-separator-left      #xe0b0
+          airline-utf-glyph-separator-right     #xe0b2
+          airline-utf-glyph-subseparator-left   #xe0b1
+          airline-utf-glyph-subseparator-right  #xe0b3
+          airline-utf-glyph-branch              #xe0a0
+          airline-utf-glyph-readonly            #xe0a2
+          airline-utf-glyph-linenumber          #xe0a1)))
+#+END_SRC
+
+* clojure
+
+#+BEGIN_SRC emacs-lisp
+(use-package paredit)
+(use-package rainbow-delimiters
+  :init (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+(use-package clojure-mode)
+(use-package cider)
+#+END_SRC
