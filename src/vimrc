@@ -26,7 +26,8 @@ Plugin 'ConradIrwin/vim-bracketed-paste'
 Plugin 'jpalardy/vim-slime'
 Plugin 'luochen1990/rainbow'
 Plugin 'vim-scripts/paredit.vim'
-Plugin 'tpope/vim-fireplace'
+"Plugin 'tpope/vim-fireplace'
+Plugin 'Olical/conjure', { 'tag': 'v2.1.0', 'do': 'bin/compile' }
 Plugin 'leafgarland/typescript-vim'
 Plugin 'Quramy/tsuquyomi'
 Plugin 'ervandew/supertab'
@@ -45,6 +46,11 @@ let g:rainbow_active = 1
 let g:rainbow_conf = {
       \ 'ctermfgs': ['darkred', 'darkblue', 'gray', 'lightblue', 'darkmagenta']
       \ }
+
+let g:conjure_omnifunc = 0
+let g:conjure_log_direction = "horizontal"
+let g:conjure_log_blacklist = ["up", "ret", "ret-multiline", "load-file", "eval"]
+let g:conjure_nmap_eval_current_form = "cpp"
 
 let g:clj_fmt_autosave = 0
 
