@@ -11,8 +11,40 @@
 
 {:aliases
  {:vrepl {:main-opts ["-m vrepl.core"]
+  :rebl
+  {:extra-deps {org.clojure/core.async {:mvn/version "0.4.490"}
+                ;; deps for file datafication (0.9.149 or later)
+                org.clojure/data.csv {:mvn/version "0.1.4"}
+                org.clojure/data.json {:mvn/version "0.2.3"}
+                org.yaml/snakeyaml {:mvn/version "1.23"}
+                com.cognitect/rebl
+                ;; adjust to match your install location
+                {:local/root "/home/chris/repos/REBL-0.9.220/REBL-0.9.220.jar"}}
+   :main-opts ["-m" "cognitect.rebl"]}
+  :rebl-11
+  {:extra-deps {org.clojure/core.async {:mvn/version "0.4.490"}
+                ;; deps for file datafication (0.9.149 or later)
+                org.clojure/data.csv {:mvn/version "0.1.4"}
+                org.clojure/data.json {:mvn/version "0.2.3"}
+                org.yaml/snakeyaml {:mvn/version "1.23"}
+                com.cognitect/rebl
+                ;; adjust to match your install location
+                {:local/root "/home/chris/repos/REBL-0.9.220/REBL-0.9.220.jar"}
+                org.openjfx/javafx-fxml     {:mvn/version "11.0.1"}
+                org.openjfx/javafx-controls {:mvn/version "11.0.1"}
+                org.openjfx/javafx-graphics {:mvn/version "11.0.1"}
+                org.openjfx/javafx-media    {:mvn/version "11.0.1"}
+                org.openjfx/javafx-swing    {:mvn/version "11.0.1"}
+                org.openjfx/javafx-base     {:mvn/version "11.0.1"}
+                org.openjfx/javafx-web      {:mvn/version "11.0.1"}}
+   :main-opts ["-m" "cognitect.rebl"]}
+  :datahike
+  {:extra-deps {io.replikativ/datahike {:mvn/version "0.2.0"}}}
+  :vrepl {:main-opts ["-m vrepl.core"]
           :extra-deps
           {vrepl {:git/url "https://github.com/djblue/vrepl.git"
                   :sha "a0aa33c0643fded3091ce3358f64217cdcfa1f15"}}}
   :rebel {:extra-deps {com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
-          :main-opts ["-m" "rebel-readline.main"]}}}
+          :main-opts ["-m" "rebel-readline.main"]}
+  :prepl
+  {:jvm-opts ["-Dclojure.server.repl={:port,40404,:accept,clojure.core.server/io-prepl}"]}}}
