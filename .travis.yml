@@ -1,7 +1,5 @@
 sudo: true
 language: java
-jdk:
-  - oraclejdk8
 cache:
   directories:
     - $HOME/.m2
@@ -14,6 +12,9 @@ script:
   - clojure -Atest
   - mkdir target
   - clojure -Adots > target/install.sh
+branches:
+  only:
+  - master
 deploy:
   provider: pages
   skip-cleanup: true
