@@ -47,4 +47,4 @@
   :rebel {:extra-deps {com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
           :main-opts ["-m" "rebel-readline.main"]}
   :prepl
-  {:jvm-opts ["-Dclojure.server.repl={:port,40404,:accept,clojure.core.server/io-prepl}"]}}}
+  {:jvm-opts ["-Dclojure.server.repl={:port,40404,:accept,clojure.core.server/io-prepl}"]}}}}
