@@ -48,9 +48,12 @@ let g:rainbow_conf = {
       \ }
 
 function! Cljfmt()
-   let save_pos = getpos(".")
-    %!cljfmt
-   call setpos(".", save_pos)
+  normal ix
+  normal x
+  undojoin
+  let save_pos = winsaveview()
+  %!cljfmt
+  call winrestview(save_pos)
 endfunction
 
 command! -nargs=0 Cljfmt call Cljfmt()
