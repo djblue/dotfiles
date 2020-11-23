@@ -10,40 +10,52 @@
 ;; Only the last :paths is kept and others are dropped.
 
 {:aliases
- {:rebl
-  {:extra-deps {org.clojure/core.async {:mvn/version "0.4.490"}
-                ;; deps for file datafication (0.9.149 or later)
-                org.clojure/data.csv {:mvn/version "0.1.4"}
-                org.clojure/data.json {:mvn/version "0.2.3"}
-                org.yaml/snakeyaml {:mvn/version "1.23"}
-                com.cognitect/rebl
-                ;; adjust to match your install location
-                {:local/root "/home/chris/repos/REBL-0.9.220/REBL-0.9.220.jar"}}
+ {:nrepl
+  {:main-opts ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]
+   :extra-deps
+   {nrepl/nrepl       {:mvn/version "0.8.0"}
+    cider/cider-nrepl {:mvn/version "0.25.3"}}}
+
+  :cider
+  {:extra-deps {cider/cider-nrepl {:mvn/version "0.25.3"}}}
+
+  :rebl        ;; for JDK 11+
+  {:extra-deps {com.cognitect/REBL          {:mvn/version "0.9.240"}
+                org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
+                org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
+                org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
+                org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
+                org.openjfx/javafx-web      {:mvn/version "15-ea+6"}}
    :main-opts ["-m" "cognitect.rebl"]}
-  :rebl-11
-  {:extra-deps {org.clojure/core.async {:mvn/version "0.4.490"}
-                ;; deps for file datafication (0.9.149 or later)
-                org.clojure/data.csv {:mvn/version "0.1.4"}
-                org.clojure/data.json {:mvn/version "0.2.3"}
-                org.yaml/snakeyaml {:mvn/version "1.23"}
-                com.cognitect/rebl
-                ;; adjust to match your install location
-                {:local/root "/home/chris/repos/REBL-0.9.220/REBL-0.9.220.jar"}
-                org.openjfx/javafx-fxml     {:mvn/version "11.0.1"}
-                org.openjfx/javafx-controls {:mvn/version "11.0.1"}
-                org.openjfx/javafx-graphics {:mvn/version "11.0.1"}
-                org.openjfx/javafx-media    {:mvn/version "11.0.1"}
-                org.openjfx/javafx-swing    {:mvn/version "11.0.1"}
-                org.openjfx/javafx-base     {:mvn/version "11.0.1"}
-                org.openjfx/javafx-web      {:mvn/version "11.0.1"}}
-   :main-opts ["-m" "cognitect.rebl"]}
+
   :datahike
   {:extra-deps {io.replikativ/datahike {:mvn/version "0.2.0"}}}
-  :vrepl {:main-opts ["-m vrepl.core"]
-          :extra-deps
-          {vrepl {:git/url "https://github.com/djblue/vrepl.git"
-                  :sha "a0aa33c0643fded3091ce3358f64217cdcfa1f15"}}}
-  :rebel {:extra-deps {com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
-          :main-opts ["-m" "rebel-readline.main"]}
+
+  :vrepl
+  {:main-opts ["-m vrepl.core"]
+   :extra-deps
+   {vrepl/vrepl
+    {:git/url "https://github.com/djblue/vrepl.git"
+     :sha "a0aa33c0643fded3091ce3358f64217cdcfa1f15"}}}
+
+  :rebel
+  {:extra-deps {com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
+   :main-opts ["-m" "rebel-readline.main"]}
+
   :prepl
-  {:jvm-opts ["-Dclojure.server.repl={:port,40404,:accept,clojure.core.server/io-prepl}"]}}}
+  {:jvm-opts ["-Dclojure.server.repl={:port,40404,:accept,clojure.core.server/io-prepl}"]}
+
+  :outdated
+  {:main-opts ["-m" "antq.core"] :extra-deps {antq/antq {:mvn/version "0.7.2"}}}
+
+  :portal
+  {:extra-deps
+   {djblue/portal {:local/root "/Users/abadahdah/repos/portal"}}
+   :override-deps
+   {djblue/portal {:local/root "/Users/abadahdah/repos/portal"}}}
+
+  :fmt {:main-opts ["-m" "cljfmt.main" "fix"]
+        :extra-deps {cljfmt/cljfmt {:mvn/version "0.6.8"}}}
+
+  :check {:main-opts ["-m" "cljfmt.main" "check"]
+          :extra-deps {cljfmt/cljfmt {:mvn/version "0.6.8"}}}}}

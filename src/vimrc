@@ -5,6 +5,7 @@ set nocompatible              " be iMproved, required
 filetype off                  " required
 set modeline
 set modelines=2
+set hidden
 
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
@@ -21,18 +22,19 @@ Plugin 'tpope/vim-markdown'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 Plugin 'tpope/vim-surround'
-Plugin 'kien/ctrlp.vim'
+Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'ConradIrwin/vim-bracketed-paste'
 Plugin 'jpalardy/vim-slime'
 Plugin 'luochen1990/rainbow'
 Plugin 'vim-scripts/paredit.vim'
 Plugin 'tpope/vim-fireplace'
-"Plugin 'Olical/conjure', { 'tag': 'v2.1.0', 'do': 'bin/compile' }
+"Plugin 'Olical/conjure', { 'tag': 'v4.3.1' }
 Plugin 'leafgarland/typescript-vim'
 Plugin 'Quramy/tsuquyomi'
 Plugin 'ervandew/supertab'
 Plugin '{{:theme/vim-plugin}}'
 Plugin 'masukomi/vim-markdown-folding'
+Plugin 'dense-analysis/ale'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -52,26 +54,48 @@ function! Cljfmt()
   normal x
   undojoin
   let save_pos = winsaveview()
-  %!cljfmt
+  %!cljfmt stdin
   call winrestview(save_pos)
 endfunction
 
-command! -nargs=0 Cljfmt call Cljfmt()
-autocmd BufWritePre *.clj,*.cljs,*.cljc,*.edn, call Cljfmt()
-noremap ff :Cljfmt<CR>
+" clojure code formatting
+if executable('cljfmt')
+  command! -nargs=0 Cljfmt call Cljfmt()
+  " autocmd BufWritePre *.clj,*.cljs,*.cljc,*.edn, call Cljfmt()
+  noremap ff :Cljfmt<CR>
+endif
 
-let g:conjure_omnifunc = 0
-let g:conjure_log_direction = "horizontal"
-let g:conjure_log_blacklist = ["up", "ret", "ret-multiline", "load-file", "eval"]
-let g:conjure_nmap_eval_current_form = "cpp"
+let g:ale_linters = {'clojure': ['clj-kondo']}
+
+" port vim-fireplace behavior to conjure
+let g:conjure#mapping#eval_current_form = ["cpp"]
+let g:conjure#mapping#eval_replace_form = ["c!!"]
+let g:conjure#log#botright = v:true
+command! -nargs=0 Require normal <localleader>ef
+command! -nargs=0 Last normal <localleader>lv
+command! -nargs=1 CljEval execute ":ConjureEval" <f-args>
 
 let g:slime_target = "tmux"
 
 let g:ctrlp_user_command =
   \ ['.git', 'cd %s && git ls-files -co --exclude-standard']
+
+" The Silver Searcher
+if executable('ag')
+  " Use ag over grep
+  set grepprg=ag\ --nogroup\ --nocolor
+
+  " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
+  let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+
+  " " ag is fast enough that CtrlP doesn't need to cache
+  let g:ctrlp_use_caching = 0
+endif
+
 let g:ctrlp_cmd='CtrlP :pwd'
 let g:ctrlp_max_files=0
 let g:ctrlp_max_depth=40
+noremap <C-f> :CtrlPLine<CR>
 
 " markdown folding
 if has("autocmd")
@@ -184,6 +208,13 @@ inoremap kj <Esc>
 inoremap kJ <Esc>
 inoremap Kj <Esc>
 inoremap KJ <Esc>
+
+" Exit terminal mode
+tnoremap <Esc> <C-\><C-n>
+tnoremap kj <C-\><C-n>
+tnoremap kJ <C-\><C-n>
+tnoremap Kj <C-\><C-n>
+tnoremap KJ <C-\><C-n>
 
 " Sort function
 vnoremap <leader>r :sort<CR>
