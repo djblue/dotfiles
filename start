@@ -1,6 +1,0 @@
-#!/bin/bash
-
-trap 'kill $(jobs -p)' EXIT
-clojure -Aserver > /dev/null 2>&1 &
-NVIM_LISTEN_ADDRESS=127.0.0.1:7777 nvim dots.clj
-
