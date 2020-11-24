@@ -168,15 +168,24 @@
           (keyword? expr) (expr config)
           (vector? expr)  (get-in config expr)))))))
 
-(defn- get-files []
-  (str/split (:out (sh "git" "ls-files")) #"\n"))
+(def home (System/getProperty "user.home"))
 
-(defn- sync-files []
+(defn git [& args]
+  (apply
+   sh "git"
+   (str "--git-dir=" home "/.dots")
+   (str "--work-tree=" home)
+   (map name args)))
+
+(defn- get-files []
+  (str/split (:out (git :ls-files)) #"\n"))
+
+(defn- sync-files [files]
   (let [config (get-config db :nord [:default])
         keep?  (->> #{:dots :shell :vim :atom :clojure :wallpaper}
                     (mapcat (:config/files db))
                     (into #{}))]
-    (doseq [file (get-files)]
+    (doseq [file files]
       (let [original (slurp file)
             expanded (render-string config original)]
         (cond
@@ -187,14 +196,15 @@
           (spit file expanded))))))
 
 (defn- git-dirty? []
-  (not (zero? (:exit (sh "git" "diff" "--quiet")))))
+  (not (zero? (:exit (git :diff "--quiet")))))
 
 (defn -main []
   (when (git-dirty?)
     (println "git is dirty")
     (System/exit 1))
-  (sync-files)
-  (sh "git" "add" ".")
-  (print (:out (sh "git" "commit" "-m" ":dots/expand"))))
+  (let [files (get-files)]
+    (sync-files files)
+    (apply git :add files))
+  (print (:out (git :commit "-m" ":dots/expand"))))
 
 (-main)
