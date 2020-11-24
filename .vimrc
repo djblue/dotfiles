@@ -54,7 +54,7 @@ function! Cljfmt()
   normal x
   undojoin
   let save_pos = winsaveview()
-  %!cljfmt stdin
+  %!cljfmt
   call winrestview(save_pos)
 endfunction
 
