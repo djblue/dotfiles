@@ -54,6 +54,15 @@
    :override-deps
    {djblue/portal {:local/root "/Users/abadahdah/repos/portal"}}}
 
+  :portal/cli
+  {:main-opts ["-m" "portal.main"]
+   :extra-deps
+   {djblue/portal {:mvn/version "0.7.0"}
+    ;; optional json support
+    cheshire/cheshire {:mvn/version "5.10.0"}
+    ;; optional yaml support
+    clj-commons/clj-yaml {:mvn/version "0.7.0"}}}
+
   :fmt {:main-opts ["-m" "cljfmt.main" "fix"]
         :extra-deps {cljfmt/cljfmt {:mvn/version "0.6.8"}}}
 

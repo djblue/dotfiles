@@ -79,3 +79,8 @@ is_osx || alias pbpaste='xsel --clipboard --output'
 alias dots="git --git-dir=$HOME/.dots --work-tree=$HOME"
 alias vrepl='clojure -Avrepl'
 alias rebel='clojure -A:rebel'
+alias portal='bb -cp `clojure -Spath -M:portal/cli` -m portal.main'
+alias edn='portal edn'
+alias json='portal json'
+alias transit='portal transit'
+alias yaml='portal yaml'
