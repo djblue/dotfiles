@@ -90,6 +90,8 @@
       :n ",<"  #'paredit-forward-barf-sexp
       :n ",S"  #'paredit-splice-sexp)
 
+(add-hook! 'emacs-lisp-mode-hook #'enable-paredit-mode)
+
 (setq cider-clojure-cli-global-options "-A:dev")
 (setq cider-repl-pop-to-buffer-on-connect nil)
 
