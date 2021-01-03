@@ -45,8 +45,9 @@
   :prepl
   {:jvm-opts ["-Dclojure.server.repl={:port,40404,:accept,clojure.core.server/io-prepl}"]}
 
-  :outdated
-  {:main-opts ["-m" "antq.core"] :extra-deps {antq/antq {:mvn/version "0.7.2"}}}
+  :upgrade
+  {:main-opts ["-m" "antq.core" "--upgrade"]
+   :extra-deps {antq/antq {:mvn/version "0.10.2"}}}
 
   :portal
   {:extra-deps
