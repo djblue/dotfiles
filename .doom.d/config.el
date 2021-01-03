@@ -101,6 +101,10 @@
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
 (add-to-list 'default-frame-alist '(alpha . (97 . 95)))
 
+(after! frame
+  (setq window-divider-default-bottom-width 1
+        window-divider-default-right-width  3))
+
 ;; Set transparency of emacs
 (defun transparency (value)
   "Sets the transparency of the frame window. 0=transparent/100=opaque"
