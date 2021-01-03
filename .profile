@@ -18,5 +18,9 @@ if [ -d "$HOME/go" ]; then
     PATH="$HOME/go/bin:$PATH"
 fi
 
+if [ -d "$HOME/.emacs.d/bin" ]; then
+    PATH="$HOME/.emacs.d/bin:$PATH"
+fi
+
 # load aliases
 source ~/.aliases
