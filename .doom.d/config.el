@@ -52,8 +52,20 @@
 ;; You can also try 'gd' (or 'C-c g d') to jump to their definition and see how
 ;; they are implemented.
 
+;; https://medium.com/urbint-engineering/emacs-doom-for-newbies-1f8038604e3b
+;; A modifier key is any one of the following. Anything else is a “non-modifer key”:
+;;
+;;   C - Control key
+;;   M - Left Alt / Meta key
+;;   s - Command / Windows / Super key
+;;   A - Right Alt / Alt key
+;;
+
 (after! evil-escape
   (setq evil-escape-key-sequence "kj"))
+
+;; cmd + n - makes a new window
+(map! :g "s-n" #'make-frame-command)
 
 ;; ctrl + p compatibility
 (map! :n "C-p" #'projectile-find-file
