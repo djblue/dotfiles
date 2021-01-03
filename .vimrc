@@ -67,6 +67,10 @@ endif
 
 let g:ale_linters = {'clojure': ['clj-kondo']}
 
+let g:clojure_syntax_keywords = {
+    \ 'clojureDefine': ["def"],
+    \ }
+
 " port vim-fireplace behavior to conjure
 let g:conjure#mapping#eval_current_form = ["cpp"]
 let g:conjure#mapping#eval_replace_form = ["c!!"]
