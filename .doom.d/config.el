@@ -69,7 +69,7 @@
 
 ;; ctrl + p compatibility
 (map! :n "C-p" #'projectile-find-file
-      :n ",q"  #'kill-current-buffer
+      :n ",q"  #'evil-quit
       :n ",c"  #'evil-ex-nohighlight)
 
 (map! :map emacs-lisp-mode-map
